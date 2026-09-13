@@ -137,4 +137,4 @@ npm test
 
 The core RAG pipeline, PDF ingestion, semantic retrieval, subject organization, duplicate detection, failure cleanup, and automated backend testing are implemented.
 
-Additional user-facing features are currently in development.
+Additional features are currently in development.
