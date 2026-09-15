@@ -244,7 +244,7 @@ export default function Home() {
 
                 <h1 className={styles.title}>
                     <span className={styles.ragText}>
-                        Marginalia
+                        marginalia
                     </span>
 
                     <span>

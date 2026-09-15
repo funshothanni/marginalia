@@ -10,7 +10,8 @@ export async function extractPdfText(buffer: Buffer): Promise<string> {
 
     try {
         const result = await parser.getText();
-        return result.text;
+        //remove null characters
+        return result.text.replace(/\u0000/g, "");
     } finally {
         await parser.destroy();
     }
