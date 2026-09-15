@@ -1,4 +1,4 @@
-# Marginalia
+# marginalia
 
 A study application that uses Retrieval-Augmented Generation (RAG) to answer questions based on uploaded course materials.
 
@@ -135,4 +135,4 @@ npm test
 
 ## Acknowledgements
 
-This project was developed collaboratively with the use of generative AI as a development aid for brainstorming, debugging, and learning. All implementation decisions, testing, and integration were reviewed and carried out by the development team.
+This project was developed collaboratively with the use of generative AI as a development aid for brainstorming, debugging, and learning. All implementation decisions, testing, and integration were reviewed and carried out by the authors.
