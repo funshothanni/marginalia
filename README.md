@@ -133,8 +133,6 @@ Run the automated test suite with:
 npm test
 ```
 
-## Project Status
+## Acknowledgements
 
-The core RAG pipeline, PDF ingestion, semantic retrieval, subject organization, duplicate detection, failure cleanup, and automated backend testing are implemented.
-
-Additional features are currently in development.
+This project was developed collaboratively with the use of generative AI as a development aid for brainstorming, debugging, and learning. All implementation decisions, testing, and integration were reviewed and carried out by the development team.
