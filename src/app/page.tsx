@@ -3,6 +3,10 @@
 import {Inter} from "next/font/google";
 import {useEffect, useState} from "react";
 import styles from "./page.module.css";
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
 const inter = Inter({
     subsets: ["latin"]
@@ -36,10 +40,12 @@ export default function Home() {
                 const data = await response.json();
 
                 if (!response.ok) {
-                    console.error(data);
+                    console.warn(
+                        "Failed to load subjects:",
+                        data.error
+                    );
                     return;
                 }
-
                 setSubjects(data.subjects);
 
                 const savedSubject =
@@ -435,21 +441,27 @@ export default function Home() {
             <section className={styles.chatArea}>
                 <div className={styles.chat}>
                     <div className={styles.messages}>
-                        {messages.map(
-                            (message, index) => (
-                                <div
-                                    key={index}
-                                    className={
-                                        message.role ===
-                                        "user"
-                                            ? styles.userMessage
-                                            : styles.assistantMessage
-                                    }
-                                >
-                                    {message.text}
-                                </div>
-                            )
-                        )}
+                        {messages.map((message, index) => (
+                            <div
+                                key={index}
+                                className={
+                                    message.role === "user"
+                                        ? styles.userMessage
+                                        : styles.assistantMessage
+                                }
+                            >
+                                {message.role === "assistant" ? (
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkMath]}
+                                        rehypePlugins={[rehypeKatex]}
+                                    >
+                                        {message.text}
+                                    </ReactMarkdown>
+                                ) : (
+                                    message.text
+                                )}
+                            </div>
+                        ))}
                         {isLoading && (
                             <div className={styles.typingIndicator}>
                                 <span></span>

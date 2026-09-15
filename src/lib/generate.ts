@@ -1,8 +1,8 @@
 import {OpenAI} from "openai";
 
 const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-    });
+    apiKey: process.env.OPENAI_API_KEY,
+});
 
 /**
  *
@@ -12,25 +12,40 @@ const openai = new OpenAI({
 export async function generateAnswer(
     question: string,
     context: string
-): Promise<string>{
+): Promise<string> {
 
     //uses "as const" to tell TypeScript that role is specifically the literal value in the "",
     // instead of treating it as a generic string.
     const messages = [
         {
             role: "system" as const,
-            content:
-            "You are a study assistant. Answer the student's question using only the provided context. If the context" +
-                "does not contain sufficient information to answer the question, say so, do not guess."
+            content: `
+You are a study assistant. Answer the student's question using only the provided context.
+
+If the context does not contain sufficient information to answer the question, say so. Do not guess.
+
+Also do not mention "the provided context" in the answer sent. 
+
+Format responses for readability using Markdown:
+- Use short paragraphs.
+- Use headings when they improve organization.
+- Use bullet points for lists when appropriate.
+- Use bold text for important terms.
+- Use LaTeX for mathematical notation.
+- Use $...$ for inline math.
+- Use $$...$$ for equations displayed on their own line.
+- Avoid large walls of text.
+        `.trim(),
         },
         {
             role: "user" as const,
-            content:
-            `Context:
-            ${context}
-            
-            Question:
-            ${question}`
+            content: `
+Context:
+${context}
+
+Question:
+${question}
+        `.trim(),
         },
     ];
 
