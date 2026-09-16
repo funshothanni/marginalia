@@ -590,3 +590,35 @@
     margin-left: 300px;
     width: calc(100% - 300px);
 }
+
+.documentItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.documentName {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.deleteDocumentButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    padding: 4px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.deleteDocumentButton:hover {
+    opacity: 1;
+}

@@ -1,8 +1,8 @@
 import { describe, expect, test, vi } from "vitest";
-import { insertChunks, searchChunks, findDocument, createDocument, deleteDocument, getSubjects} from "../lib/db";
+import { insertChunks, searchChunks, findDocument, createDocument, deleteDocument, getSubjects, getDocumentsBySubject} from "../lib/db";
 import { EmbeddedChunk } from "../types/embeddedChunk";
 
-const { mockFrom, mockInsert, mockSelect, mockRpc, mockEq, mockMaybeSingle, mockSingle, mockDelete } = vi.hoisted(() => {
+const { mockFrom, mockInsert, mockSelect, mockRpc, mockEq, mockMaybeSingle, mockSingle, mockDelete, mockOrder } = vi.hoisted(() => {
     process.env.SUPABASE_URL = "https://fake-project.supabase.co";
     process.env.SUPABASE_SECRET_KEY = "fake-secret-key";
     return {
@@ -14,6 +14,7 @@ const { mockFrom, mockInsert, mockSelect, mockRpc, mockEq, mockMaybeSingle, mock
         mockMaybeSingle: vi.fn(),
         mockSingle: vi.fn(),
         mockDelete: vi.fn(),
+        mockOrder: vi.fn(),
     };
 });
 
@@ -65,6 +66,12 @@ mockSelect.mockImplementation((columns?: string) => {
             ],
             error: null,
         });
+    }
+
+    if (columns === "id, file_name, created_at") {
+        return {
+            eq: mockEq,
+        };
     }
 
     return Promise.resolve({
@@ -280,8 +287,71 @@ describe("getSubjects", () => {
             error: { message: "Database unavailable" },
         });
 
-        await expect(getSubjects()).rejects.toThrow(
+        expect(getSubjects()).rejects.toThrow(
             "Failed to retrieve subjects: Database unavailable"
+        );
+    });
+});
+
+describe("getDocumentsBySubject", () => {
+    test("returns documents belonging to the selected subject", async () => {
+        const fakeDocuments = [
+            {
+                id: 2,
+                file_name: "lecture2.pdf",
+                created_at: "2026-09-15T12:00:00Z",
+            },
+            {
+                id: 1,
+                file_name: "lecture1.pdf",
+                created_at: "2026-09-14T12:00:00Z",
+            },
+        ];
+
+        mockEq.mockReturnValueOnce({
+            order: mockOrder,
+        });
+
+        mockOrder.mockResolvedValueOnce({
+            data: fakeDocuments,
+            error: null,
+        });
+
+        const result = await getDocumentsBySubject("COMP");
+
+        expect(mockFrom).toHaveBeenCalledWith("documents");
+
+        expect(mockSelect).toHaveBeenCalledWith(
+            "id, file_name, created_at"
+        );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "subject",
+            "COMP"
+        );
+
+        expect(mockOrder).toHaveBeenCalledWith(
+            "created_at",
+            { ascending: false }
+        );
+
+        expect(result).toEqual(fakeDocuments);
+    });
+
+    test("throws when retrieving documents fails", async () => {
+        mockEq.mockReturnValueOnce({
+            order: mockOrder,
+        });
+
+        mockOrder.mockResolvedValueOnce({
+            data: null,
+            error: { message: "Database unavailable" },
+        });
+
+        expect(
+            getDocumentsBySubject("COMP")
+        ).rejects.toThrow(
+            "Failed to retrieve documents: Database unavailable"
         );
     });
 });
