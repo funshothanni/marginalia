@@ -95,6 +95,7 @@ export async function deleteDocument(documentId: number) {
     }
 }
 
+//gets all the subjects in the database
 export async function getSubjects(): Promise<string[]> {
     const { data, error } = await supabase
     .from("documents")
@@ -107,4 +108,20 @@ export async function getSubjects(): Promise<string[]> {
     return [...new Set(
         data.map(row => row.subject)
     )];
+}
+
+//gets the document under a specific subject selected
+export async function getDocumentsBySubject(subject: string) {
+    const { data, error } = await supabase
+        .from("documents")
+        .select("id, file_name, created_at")
+        .eq("subject", subject)
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        throw new Error(
+            `Failed to retrieve documents: ${error.message}`
+        );
+    }
+    return data;
 }

@@ -18,8 +18,16 @@ export default function Home() {
         text: string;
     };
 
+    type Document = {
+        id: number;
+        file_name: string;
+        created_at: string;
+    };
+
     const [question, setQuestion] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
+
+    const [documents, setDocuments] = useState<Document[]>([]);
 
     const [file, setFile] = useState<File | null>(null);
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -67,6 +75,29 @@ export default function Home() {
 
         loadSubjects();
     }, []);
+
+    useEffect(() => {
+        if (!selectedSubject) {
+            return;
+        }
+
+        async function loadDocuments() {
+            const response = await fetch(
+                `/api/documents?subject=${encodeURIComponent(selectedSubject)}`
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error(data);
+                return;
+            }
+
+            setDocuments(data.documents);
+        }
+
+        loadDocuments();
+    }, [selectedSubject]);
 
     async function handleSubmit(
         event: React.FormEvent<HTMLFormElement>
@@ -138,7 +169,7 @@ export default function Home() {
             );
 
             alert("Question failed.");
-        }finally {
+        } finally {
             setIsLoading(false);
         }
     }
@@ -171,6 +202,50 @@ export default function Home() {
 
         setNewSubject("");
         setShowAddSubject(false);
+    }
+
+    async function handleDeleteDocument(documentId: number) {
+        const confirmed = window.confirm(
+            "Are you sure you want to delete this document?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `/api/documents?id=${documentId}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error(data);
+                alert(
+                    data.error ||
+                    "Failed to delete document."
+                );
+                return;
+            }
+
+            setDocuments((previousDocuments) =>
+                previousDocuments.filter(
+                    (document) =>
+                        document.id !== documentId
+                )
+            );
+        } catch (error) {
+            console.error(
+                "Document deletion failed:",
+                error
+            );
+
+            alert("Failed to delete document.");
+        }
     }
 
     async function handleFileUpload() {
@@ -217,6 +292,16 @@ export default function Home() {
             }
 
             setUploadedFile(file);
+
+            const documentsResponse = await fetch(
+                `/api/documents?subject=${encodeURIComponent(selectedSubject)}`
+            );
+
+            const documentsData = await documentsResponse.json();
+
+            if (documentsResponse.ok) {
+                setDocuments(documentsData.documents);
+            }
 
             alert(
                 "File uploaded successfully."
@@ -328,7 +413,7 @@ export default function Home() {
                             )
                         }
                     >
-                         Add Subject
+                        Add Subject
                     </button>
 
                     {showAddSubject && (
@@ -367,6 +452,57 @@ export default function Home() {
                         </div>
                     )}
                 </div>
+
+                {selectedSubject && (
+                    <div>
+                        <p className={styles.label}>
+                            Uploaded Documents
+                        </p>
+                        {documents.length === 0 ? (
+                            <p>No {selectedSubject} documents uploaded yet.</p>
+                        ) : (
+                            <ul>
+                                {documents.map((document) => (
+                                    <li
+                                        key={document.id}
+                                        className={styles.documentItem}
+                                    >
+    <span className={styles.documentName}>
+        {document.file_name}
+    </span>
+                                        <button
+                                            className={styles.deleteDocumentButton}
+                                            type="button"
+                                            onClick={() =>
+                                                handleDeleteDocument(document.id)
+                                            }
+                                            aria-label={`Delete ${document.file_name}`}
+                                            title="Delete document"
+                                        >
+                                            <svg
+                                                width="18"
+                                                height="18"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                aria-hidden="true"
+                                            >
+                                                <path d="M3 6h18"/>
+                                                <path d="M8 6V4h8v2"/>
+                                                <path d="M19 6l-1 14H6L5 6"/>
+                                                <path d="M10 11v5"/>
+                                                <path d="M14 11v5"/>
+                                            </svg>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                )}
 
                 <div className={styles.uploadSection}>
                     <label className={styles.label}>
