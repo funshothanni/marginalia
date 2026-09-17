@@ -15,6 +15,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "marginalia",
   description: "notes that talk back...",
+  icons: {
+    icon: [
+      {
+        url: "/marginalia-icon.png",
+        type: "image/png",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
