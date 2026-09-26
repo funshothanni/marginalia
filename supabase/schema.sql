@@ -48,3 +48,21 @@ where note_chunks.metadata->>'subject' = match_subject
 order by note_chunks.embedding <=> query_embedding
 limit match_count;
 $$;
+
+-- Store chat conversations
+create table if not exists chats (
+    id serial primary key,
+    title text not null,
+    subject text not null,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+-- Store messages belonging to chats
+create table if not exists messages (
+    id serial primary key,
+    chat_id integer not null references chats(id) on delete cascade,
+    role text not null check (role in ('user', 'assistant')),
+    content text not null,
+    created_at timestamptz not null default now()
+);
