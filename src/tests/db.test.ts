@@ -1,8 +1,11 @@
 import { describe, expect, test, vi } from "vitest";
-import { insertChunks, searchChunks, findDocument, createDocument, deleteDocument, getSubjects, getDocumentsBySubject} from "../lib/db";
+import {
+    insertChunks, searchChunks, findDocument, createDocument, deleteDocument, getSubjects, getDocumentsBySubject,
+    createChat, createMessage, getMessages, getChats, updateChatTimestamp, updateChatTitle, getChat, deleteChat
+} from "../lib/db";
 import { EmbeddedChunk } from "../types/embeddedChunk";
 
-const { mockFrom, mockInsert, mockSelect, mockRpc, mockEq, mockMaybeSingle, mockSingle, mockDelete, mockOrder } = vi.hoisted(() => {
+const { mockFrom, mockInsert, mockSelect, mockRpc, mockEq, mockMaybeSingle, mockSingle, mockDelete, mockOrder, mockUpdate } = vi.hoisted(() => {
     process.env.SUPABASE_URL = "https://fake-project.supabase.co";
     process.env.SUPABASE_SECRET_KEY = "fake-secret-key";
     return {
@@ -15,6 +18,7 @@ const { mockFrom, mockInsert, mockSelect, mockRpc, mockEq, mockMaybeSingle, mock
         mockSingle: vi.fn(),
         mockDelete: vi.fn(),
         mockOrder: vi.fn(),
+        mockUpdate: vi.fn(),
     };
 });
 
@@ -39,6 +43,22 @@ mockFrom.mockImplementation((table: string) => {
             select: mockSelect,
             insert: mockInsert,
             delete: mockDelete,
+        };
+    }
+
+    if (table === "chats") {
+        return {
+            insert: mockInsert,
+            select: mockSelect,
+            update: mockUpdate,
+            delete: mockDelete,
+        };
+    }
+
+    if (table === "messages") {
+        return {
+            insert: mockInsert,
+            select: mockSelect,
         };
     }
 });
@@ -74,6 +94,21 @@ mockSelect.mockImplementation((columns?: string) => {
         };
     }
 
+    if (columns === "id, title, subject, created_at, updated_at") {
+        return {
+            single: mockSingle,
+            order: mockOrder,
+            eq: mockEq,
+        };
+    }
+
+    if (columns === "id, chat_id, role, content, created_at") {
+        return {
+            single: mockSingle,
+            eq: mockEq,
+        };
+    }
+
     return Promise.resolve({
         data: [{ id: 1 }],
         error: null,
@@ -87,6 +122,8 @@ const documentQuery = {
 
 mockEq.mockReturnValue(documentQuery);
 mockDelete.mockReturnValue({eq: mockEq,});
+
+mockUpdate.mockReturnValue({eq: mockEq,});
 
 describe("insertChunks", () => {
     test("returns an empty array and does not contact Supabase when given no chunks", async () => {
@@ -287,7 +324,7 @@ describe("getSubjects", () => {
             error: { message: "Database unavailable" },
         });
 
-        expect(getSubjects()).rejects.toThrow(
+        await expect(getSubjects()).rejects.toThrow(
             "Failed to retrieve subjects: Database unavailable"
         );
     });
@@ -348,10 +385,455 @@ describe("getDocumentsBySubject", () => {
             error: { message: "Database unavailable" },
         });
 
-        expect(
-            getDocumentsBySubject("COMP")
+        await expect(getDocumentsBySubject("COMP")).rejects.toThrow("Failed to retrieve documents: Database unavailable");
+    });
+});
+
+describe("createChat", () => {
+    test("creates a chat and returns it", async () => {
+        const fakeChat = {
+            id: 1,
+            title: "New Chat",
+            subject: "COMP",
+            created_at: "2026-09-22T12:00:00Z",
+            updated_at: "2026-09-22T12:00:00Z",
+        };
+
+        mockSingle.mockResolvedValueOnce({
+            data: fakeChat,
+            error: null,
+        });
+
+        const result = await createChat("COMP");
+
+        expect(mockFrom).toHaveBeenCalledWith("chats");
+
+        expect(mockInsert).toHaveBeenCalledWith({
+            subject: "COMP",
+            title: "New Chat",
+        });
+
+        expect(mockSelect).toHaveBeenCalledWith(
+            "id, title, subject, created_at, updated_at"
+        );
+
+        expect(result).toEqual(fakeChat);
+    });
+
+    test("creates a chat with a custom title", async () => {
+        const fakeChat = {
+            id: 2,
+            title: "Binary Trees",
+            subject: "COMP",
+            created_at: "2026-09-22T12:00:00Z",
+            updated_at: "2026-09-22T12:00:00Z",
+        };
+
+        mockSingle.mockResolvedValueOnce({
+            data: fakeChat,
+            error: null,
+        });
+
+        const result = await createChat(
+            "COMP",
+            "Binary Trees"
+        );
+
+        expect(mockInsert).toHaveBeenCalledWith({
+            subject: "COMP",
+            title: "Binary Trees",
+        });
+
+        expect(result).toEqual(fakeChat);
+    });
+
+    test("throws an error when chat creation fails", async () => {
+        mockSingle.mockResolvedValueOnce({
+            data: null,
+            error: {
+                message: "Database unavailable"
+            },
+        });
+
+        await expect(createChat("COMP")).rejects.toThrow("Failed to create chat: Database unavailable");
+    });
+});
+
+describe("createMessage", () => {
+    test("creates a user message and returns it", async () => {
+        const fakeMessage = {
+            id: 1,
+            chat_id: 7,
+            role: "user",
+            content: "What is a binary tree?",
+            created_at: "2026-09-22T12:00:00Z",
+        };
+
+        mockSingle.mockResolvedValueOnce({
+            data: fakeMessage,
+            error: null,
+        });
+
+        const result = await createMessage(
+            7,
+            "user",
+            "What is a binary tree?"
+        );
+
+        expect(mockFrom).toHaveBeenCalledWith("messages");
+
+        expect(mockInsert).toHaveBeenCalledWith({
+            chat_id: 7,
+            role: "user",
+            content: "What is a binary tree?",
+        });
+
+        expect(mockSelect).toHaveBeenCalledWith(
+            "id, chat_id, role, content, created_at"
+        );
+
+        expect(result).toEqual(fakeMessage);
+    });
+
+    test("creates an assistant message", async () => {
+        const fakeMessage = {
+            id: 2,
+            chat_id: 7,
+            role: "assistant",
+            content: "A binary tree is...",
+            created_at: "2026-09-22T12:00:01Z",
+        };
+
+        mockSingle.mockResolvedValueOnce({
+            data: fakeMessage,
+            error: null,
+        });
+
+        const result = await createMessage(
+            7,
+            "assistant",
+            "A binary tree is..."
+        );
+
+        expect(mockInsert).toHaveBeenCalledWith({
+            chat_id: 7,
+            role: "assistant",
+            content: "A binary tree is...",
+        });
+
+        expect(result).toEqual(fakeMessage);
+    });
+
+    test("throws an error when message creation fails", async () => {
+        mockSingle.mockResolvedValueOnce({
+            data: null,
+            error: {
+                message: "Database unavailable"
+            },
+        });
+
+        await expect(createMessage(7, "user", "What is a binary tree?"))
+            .rejects.toThrow("Failed to create message: Database unavailable"
+        );
+    });
+});
+
+describe("getMessages", () => {
+    test("returns messages for a chat in chronological order", async () => {
+        const fakeMessages = [
+            {
+                id: 1,
+                chat_id: 7,
+                role: "user",
+                content: "What is a binary tree?",
+                created_at: "2026-09-22T12:00:00Z",
+            },
+            {
+                id: 2,
+                chat_id: 7,
+                role: "assistant",
+                content: "A binary tree is...",
+                created_at: "2026-09-22T12:00:01Z",
+            },
+        ];
+
+        mockEq.mockReturnValueOnce({
+            order: mockOrder,
+        });
+
+        mockOrder.mockResolvedValueOnce({
+            data: fakeMessages,
+            error: null,
+        });
+
+        const result = await getMessages(7);
+
+        expect(mockFrom).toHaveBeenCalledWith("messages");
+
+        expect(mockSelect).toHaveBeenCalledWith(
+            "id, chat_id, role, content, created_at"
+        );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "chat_id",
+            7
+        );
+
+        expect(mockOrder).toHaveBeenCalledWith(
+            "created_at",
+            { ascending: true }
+        );
+
+        expect(result).toEqual(fakeMessages);
+    });
+
+    test("returns an empty array when the chat has no messages", async () => {
+        mockEq.mockReturnValueOnce({
+            order: mockOrder,
+        });
+
+        mockOrder.mockResolvedValueOnce({
+            data: [],
+            error: null,
+        });
+
+        const result = await getMessages(7);
+
+        expect(result).toEqual([]);
+    });
+
+    test("throws an error when retrieving messages fails", async () => {
+        mockEq.mockReturnValueOnce({
+            order: mockOrder,
+        });
+
+        mockOrder.mockResolvedValueOnce({
+            data: null,
+            error: {
+                message: "Database unavailable"
+            },
+        });
+
+        await expect( getMessages(7)).rejects.toThrow(
+            "Failed to retrieve messages: Database unavailable"
+        );
+    });
+});
+
+describe("getChats", () => {
+    test("returns chats ordered by most recently updated", async () => {
+        const fakeChats = [
+            {
+                id: 2,
+                title: "Binary Trees",
+                subject: "COMP",
+                created_at: "2026-09-22T12:00:00Z",
+                updated_at: "2026-09-22T14:00:00Z",
+            },
+            {
+                id: 1,
+                title: "Bayes Theorem",
+                subject: "STAT",
+                created_at: "2026-09-22T10:00:00Z",
+                updated_at: "2026-09-22T11:00:00Z",
+            },
+        ];
+
+        mockOrder.mockResolvedValueOnce({
+            data: fakeChats,
+            error: null,
+        });
+
+        const result = await getChats();
+
+        expect(mockFrom).toHaveBeenCalledWith("chats");
+
+        expect(mockSelect).toHaveBeenCalledWith(
+            "id, title, subject, created_at, updated_at"
+        );
+
+        expect(mockOrder).toHaveBeenCalledWith(
+            "updated_at",
+            { ascending: false }
+        );
+
+        expect(result).toEqual(fakeChats);
+    });
+
+    test("returns an empty array when there are no chats", async () => {
+        mockOrder.mockResolvedValueOnce({
+            data: [],
+            error: null,
+        });
+
+        const result = await getChats();
+
+        expect(result).toEqual([]);
+    });
+
+    test("throws an error when retrieving chats fails", async () => {
+        mockOrder.mockResolvedValueOnce({
+            data: null,
+            error: {
+                message: "Database unavailable",
+            },
+        });
+
+        await expect(
+            getChats()
         ).rejects.toThrow(
-            "Failed to retrieve documents: Database unavailable"
+            "Failed to retrieve chats: Database unavailable"
+        );
+    });
+});
+
+describe("updateChatTimestamp", () => {
+    test("updates the chat timestamp", async () => {
+        mockEq.mockResolvedValueOnce({
+            error: null,
+        });
+
+        await updateChatTimestamp(7);
+
+        expect(mockFrom).toHaveBeenCalledWith("chats");
+
+        expect(mockUpdate).toHaveBeenCalledWith({
+            updated_at: expect.any(String),
+        });
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "id",
+            7
+        );
+    });
+
+    test("throws an error when updating the timestamp fails", async () => {
+        mockEq.mockResolvedValueOnce({
+            error: {
+                message: "Database unavailable",
+            },
+        });
+
+        await expect(updateChatTimestamp(7)).rejects.toThrow(
+            "Failed to update chat timestamp: Database unavailable"
+        );
+    });
+});
+
+describe("updateChatTitle", () => {
+    test("updates the chat title", async () => {
+        mockEq.mockResolvedValueOnce({
+            error: null,
+        });
+
+        await updateChatTitle(
+            7,
+            "What is operant conditioning?"
+        );
+
+        expect(mockFrom).toHaveBeenCalledWith("chats");
+
+        expect(mockUpdate).toHaveBeenCalledWith({
+            title: "What is operant conditioning?",
+        });
+
+        expect(mockEq).toHaveBeenCalledWith("id", 7);
+    });
+
+    test("throws an error when updating the title fails", async () => {
+        mockEq.mockResolvedValueOnce({
+            error: {
+                message: "Database unavailable",
+            },
+        });
+        await expect(updateChatTitle( 7, "What is operant conditioning?")).rejects.toThrow("Failed to update chat title: Database unavailable");
+    });
+});
+
+describe("getChat", () => {
+    test("returns a chat by ID", async () => {
+        const fakeChat = {
+            id: 7,
+            title: "New Chat",
+            subject: "PSYC",
+            created_at: "2026-09-23T12:00:00Z",
+            updated_at: "2026-09-23T12:00:00Z",
+        };
+
+        mockEq.mockReturnValueOnce({
+            maybeSingle: mockMaybeSingle,
+        });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: fakeChat,
+            error: null,
+        });
+
+        const result = await getChat(7);
+
+        expect(mockFrom).toHaveBeenCalledWith("chats");
+
+        expect(mockSelect).toHaveBeenCalledWith(
+            "id, title, subject, created_at, updated_at"
+        );
+
+        expect(mockEq).toHaveBeenCalledWith("id", 7);
+
+        expect(result).toEqual(fakeChat);
+    });
+
+    test("returns null when the chat does not exist", async () => {
+        mockEq.mockReturnValueOnce({
+            maybeSingle: mockMaybeSingle,
+        });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: null,
+            error: null,
+        });
+
+        const result = await getChat(999);
+        expect(result).toBeNull();
+    });
+
+    test("throws an error when retrieving the chat fails", async () => {
+        mockEq.mockReturnValueOnce({
+            maybeSingle: mockMaybeSingle,
+        });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: null,
+            error: {
+                message: "Database unavailable",
+            },
+        });
+
+        await expect(getChat(7)).rejects.toThrow("Failed to retrieve chat: Database unavailable"
+        );
+    });
+});
+
+describe("deleteChat", () => {
+    test("deletes a chat by ID", async () => {
+        mockEq.mockResolvedValueOnce({
+            error: null,
+        });
+
+        await deleteChat(7);
+        expect(mockFrom).toHaveBeenCalledWith("chats");
+        expect(mockDelete).toHaveBeenCalled();
+        expect(mockEq).toHaveBeenCalledWith( "id", 7);
+    });
+
+    test("throws an error when deleting a chat fails", async () => {
+        mockEq.mockResolvedValueOnce({
+            error: {
+                message: "Database unavailable",
+            },
+        });
+
+        await expect( deleteChat(7)).rejects.toThrow(
+            "Failed to delete chat: Database unavailable"
         );
     });
 });

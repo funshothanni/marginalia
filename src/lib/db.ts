@@ -1,6 +1,8 @@
 import {createClient} from "@supabase/supabase-js";
 import {EmbeddedChunk} from "@/types/embeddedChunk";
 import {SearchResult} from "@/types/searchResult";
+import { Chat } from "../types/chat";
+import { Message } from "../types/message";
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY;
@@ -124,4 +126,124 @@ export async function getDocumentsBySubject(subject: string) {
         );
     }
     return data;
+}
+
+export async function createChat( subject: string, title: string = "New Chat"): Promise<Chat> {
+    const { data, error } = await supabase
+        .from("chats")
+        .insert({ subject, title,})
+        .select("id, title, subject, created_at, updated_at")
+        .single();
+
+    if (error) {
+        throw new Error(
+            `Failed to create chat: ${error.message}`
+        );
+    }
+
+    return data;
+}
+
+export async function createMessage(chatId: number, role: "user" | "assistant", content: string): Promise<Message> {
+    const { data, error } = await supabase
+        .from("messages")
+        .insert({ chat_id: chatId, role, content})
+        .select("id, chat_id, role, content, created_at")
+        .single();
+
+    if (error) {
+        throw new Error(
+            `Failed to create message: ${error.message}`
+        );
+    }
+
+    return data;
+}
+
+export async function getMessages(chatId: number): Promise<Message[]> {
+    const { data, error } = await supabase
+        .from("messages")
+        .select("id, chat_id, role, content, created_at")
+        .eq("chat_id", chatId)
+        .order("created_at", { ascending: true });
+
+    if (error) {
+        throw new Error(
+            `Failed to retrieve messages: ${error.message}`
+        );
+    }
+
+    return data;
+}
+
+export async function getChats(): Promise<Chat[]> {
+    const { data, error } = await supabase
+        .from("chats")
+        .select("id, title, subject, created_at, updated_at")
+        .order("updated_at", { ascending: false });
+
+    if (error) {
+        throw new Error(
+            `Failed to retrieve chats: ${error.message}`
+        );
+    }
+
+    return data;
+}
+
+export async function updateChatTimestamp( chatId: number): Promise<void> {
+    const { error } = await supabase
+        .from("chats")
+        .update({updated_at: new Date().toISOString(),})
+        .eq("id", chatId);
+
+    if (error) {
+        throw new Error(
+            `Failed to update chat timestamp: ${error.message}`
+        );
+    }
+}
+
+export async function updateChatTitle( chatId: number, title: string): Promise<void> {
+    const { error } = await supabase
+        .from("chats")
+        .update({
+            title,
+        })
+        .eq("id", chatId);
+
+    if (error) {
+        throw new Error(
+            `Failed to update chat title: ${error.message}`
+        );
+    }
+}
+
+export async function getChat( chatId: number): Promise<Chat | null> {
+    const { data, error } = await supabase
+        .from("chats")
+        .select("id, title, subject, created_at, updated_at")
+        .eq("id", chatId)
+        .maybeSingle();
+
+    if (error) {
+        throw new Error(
+            `Failed to retrieve chat: ${error.message}`
+        );
+    }
+
+    return data;
+}
+
+export async function deleteChat( chatId: number): Promise<void> {
+    const { error } = await supabase
+        .from("chats")
+        .delete()
+        .eq("id", chatId);
+
+    if (error) {
+        throw new Error(
+            `Failed to delete chat: ${error.message}`
+        );
+    }
 }
