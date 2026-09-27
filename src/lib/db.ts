@@ -224,11 +224,12 @@ export async function updateChatTitle( chatId: number, title: string): Promise<v
     }
 }
 
-export async function getChat( chatId: number): Promise<Chat | null> {
+export async function getChat(userId: string, chatId: number): Promise<Chat | null> {
     const { data, error } = await supabase
         .from("chats")
         .select("id, title, subject, created_at, updated_at")
         .eq("id", chatId)
+        .eq("user_id", userId)
         .maybeSingle();
 
     if (error) {

@@ -769,7 +769,7 @@ describe("updateChatTitle", () => {
 });
 
 describe("getChat", () => {
-    test("returns a chat by ID", async () => {
+    test("returns a chat owned by the user", async () => {
         const fakeChat = {
             id: 7,
             title: "New Chat",
@@ -778,16 +778,23 @@ describe("getChat", () => {
             updated_at: "2026-09-23T12:00:00Z",
         };
 
-        mockEq.mockReturnValueOnce({
-            maybeSingle: mockMaybeSingle,
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
 
         mockMaybeSingle.mockResolvedValueOnce({
             data: fakeChat,
             error: null,
         });
 
-        const result = await getChat(7);
+        const result = await getChat(
+            "test-user-id",
+            7
+        );
 
         expect(mockFrom).toHaveBeenCalledWith("chats");
 
@@ -796,28 +803,44 @@ describe("getChat", () => {
         );
 
         expect(mockEq).toHaveBeenCalledWith("id", 7);
+        expect(mockEq).toHaveBeenCalledWith(
+            "user_id",
+            "test-user-id"
+        );
 
         expect(result).toEqual(fakeChat);
     });
 
-    test("returns null when the chat does not exist", async () => {
-        mockEq.mockReturnValueOnce({
-            maybeSingle: mockMaybeSingle,
-        });
+    test("returns null when the chat does not exist for the user", async () => {
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
 
         mockMaybeSingle.mockResolvedValueOnce({
             data: null,
             error: null,
         });
 
-        const result = await getChat(999);
+        const result = await getChat(
+            "test-user-id",
+            999
+        );
+
         expect(result).toBeNull();
     });
 
     test("throws an error when retrieving the chat fails", async () => {
-        mockEq.mockReturnValueOnce({
-            maybeSingle: mockMaybeSingle,
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
 
         mockMaybeSingle.mockResolvedValueOnce({
             data: null,
@@ -826,7 +849,10 @@ describe("getChat", () => {
             },
         });
 
-        await expect(getChat(7)).rejects.toThrow("Failed to retrieve chat: Database unavailable"
+        await expect(
+            getChat("test-user-id", 7)
+        ).rejects.toThrow(
+            "Failed to retrieve chat: Database unavailable"
         );
     });
 });
