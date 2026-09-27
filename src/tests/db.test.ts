@@ -68,7 +68,10 @@ mockInsert.mockReturnValue({
 
 mockSelect.mockImplementation((columns?: string) => {
     if (columns === "id, file_name") {
-        return documentQuery;
+        return {
+            eq: mockEq,
+            maybeSingle: mockMaybeSingle,
+        };
     }
 
     if (columns === "id") {
@@ -115,15 +118,19 @@ mockSelect.mockImplementation((columns?: string) => {
     });
 });
 
-const documentQuery = {
+mockEq.mockReturnValue({
     eq: mockEq,
     maybeSingle: mockMaybeSingle,
-};
+    order: mockOrder,
+});
 
-mockEq.mockReturnValue(documentQuery);
-mockDelete.mockReturnValue({eq: mockEq,});
+mockDelete.mockReturnValue({
+    eq: mockEq,
+});
 
-mockUpdate.mockReturnValue({eq: mockEq,});
+mockUpdate.mockReturnValue({
+    eq: mockEq,
+});
 
 describe("insertChunks", () => {
     test("returns an empty array and does not contact Supabase when given no chunks", async () => {
@@ -644,12 +651,17 @@ describe("getChats", () => {
             error: null,
         });
 
-        const result = await getChats();
+        const result = await getChats("test-user-id");
 
         expect(mockFrom).toHaveBeenCalledWith("chats");
 
         expect(mockSelect).toHaveBeenCalledWith(
             "id, title, subject, created_at, updated_at"
+        );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "user_id",
+            "test-user-id"
         );
 
         expect(mockOrder).toHaveBeenCalledWith(
@@ -666,7 +678,7 @@ describe("getChats", () => {
             error: null,
         });
 
-        const result = await getChats();
+        const result = await getChats("test-user-id")
 
         expect(result).toEqual([]);
     });
@@ -680,7 +692,7 @@ describe("getChats", () => {
         });
 
         await expect(
-            getChats()
+            getChats("test-user-id")
         ).rejects.toThrow(
             "Failed to retrieve chats: Database unavailable"
         );

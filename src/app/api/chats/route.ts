@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createChat, getChats, deleteChat } from "../../../lib/db";
+import { getCurrentUser } from "../../../lib/auth";
 
 export async function GET() {
     try {
-        const chats = await getChats();
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
 
+        const chats = await getChats(user.id);
         return NextResponse.json({ chats });
     } catch (error) {
         console.error("GET CHATS ERROR:", error);

@@ -2,7 +2,6 @@ import {createClient} from "@supabase/supabase-js";
 import {EmbeddedChunk} from "@/types/embeddedChunk";
 import {SearchResult} from "@/types/searchResult";
 import { Chat } from "../types/chat";
-// @ts-ignore
 import { Message } from "../types/message";
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -177,10 +176,11 @@ export async function getMessages(chatId: number): Promise<Message[]> {
     return data;
 }
 
-export async function getChats(): Promise<Chat[]> {
+export async function getChats(userId: string): Promise<Chat[]> {
     const { data, error } = await supabase
         .from("chats")
         .select("id, title, subject, created_at, updated_at")
+        .eq("user_id", userId)
         .order("updated_at", { ascending: false });
 
     if (error) {

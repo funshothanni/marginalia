@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { GET, POST, DELETE } from "../app/api/chats/route";
 import { createChat, getChats, deleteChat } from "../lib/db";
+import { getCurrentUser } from "../lib/auth";
 import { NextRequest } from "next/server";
 
 vi.mock("../lib/db", () => ({
@@ -9,17 +10,30 @@ vi.mock("../lib/db", () => ({
     deleteChat: vi.fn(),
 }));
 
+vi.mock("../lib/auth", () => ({
+    getCurrentUser: vi.fn(),
+}));
+
 const mockCreateChat = vi.mocked(createChat);
 const mockGetChats = vi.mocked(getChats);
 const mockDeleteChat = vi.mocked(deleteChat);
+const mockGetCurrentUser = vi.mocked(getCurrentUser);
 
 beforeEach(() => {
     vi.clearAllMocks();
+
+    mockGetCurrentUser.mockResolvedValue({
+        id: "test-user-id",
+        app_metadata: {},
+        user_metadata: {},
+        aud: "authenticated",
+        created_at: "2026-09-27T00:00:00Z",
+    });
 });
 
 
 describe("GET /api/chats", () => {
-    test("returns all chats", async () => {
+    test("returns the authenticated user's chats", async () => {
         const fakeChats = [
             {
                 id: 2,
@@ -46,7 +60,7 @@ describe("GET /api/chats", () => {
         expect(data).toEqual({
             chats: fakeChats,
         });
-        expect(mockGetChats).toHaveBeenCalledOnce();
+        expect(mockGetChats).toHaveBeenCalledWith("test-user-id");
     });
 
     test("returns 500 when retrieving chats fails", async () => {
@@ -152,6 +166,20 @@ describe("POST /api/chats", () => {
         expect(data).toEqual({
             error: "Failed to create chat",
         });
+    });
+
+    test("returns 401 when user is not authenticated", async () => {
+        mockGetCurrentUser.mockResolvedValueOnce(null);
+
+        const response = await GET();
+        const data = await response.json();
+
+        expect(response.status).toBe(401);
+        expect(data).toEqual({
+            error: "Unauthorized",
+        });
+
+        expect(mockGetChats).not.toHaveBeenCalled();
     });
 });
 
