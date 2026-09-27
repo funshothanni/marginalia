@@ -1,7 +1,7 @@
 "use client";
 
 import {Inter} from "next/font/google";
-import {useEffect, useState} from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
@@ -23,9 +23,20 @@ export default function Home() {
         file_name: string;
         created_at: string;
     };
+    type Chat = {
+        id: number;
+        title: string;
+        subject: string;
+        created_at: string;
+        updated_at: string;
+    };
 
     const [question, setQuestion] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
+    const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+    const [chats, setChats] = useState<Chat[]>([]);
+    const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
 
     const [documents, setDocuments] = useState<Document[]>([]);
 
@@ -75,6 +86,37 @@ export default function Home() {
 
         loadSubjects();
     }, []);
+    useEffect(() => {
+        async function loadChats() {
+            try {
+                const response = await fetch("/api/chats");
+                const data = await response.json();
+
+                if (!response.ok) {
+                    console.error(
+                        "Failed to load chats:",
+                        data.error
+                    );
+                    return;
+                }
+
+                setChats(data.chats);
+            } catch (error) {
+                console.error(
+                    "Failed to load chats:",
+                    error
+                );
+            }
+        }
+
+        loadChats();
+    }, []);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({
+            behavior: "smooth"
+        });
+    }, [messages, isLoading]);
 
     useEffect(() => {
         if (!selectedSubject) {
@@ -98,6 +140,42 @@ export default function Home() {
 
         loadDocuments();
     }, [selectedSubject]);
+
+    async function handleSelectChat(chatId: number) {
+        try {
+            const response = await fetch(
+                `/api/messages?chatId=${chatId}`
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error(
+                    "Failed to load messages:",
+                    data.error
+                );
+                return;
+            }
+
+            const loadedMessages: Message[] = data.messages.map(
+                (message: {
+                    role: "user" | "assistant";
+                    content: string;
+                }) => ({
+                    role: message.role,
+                    text: message.content
+                })
+            );
+
+            setSelectedChatId(chatId);
+            setMessages(loadedMessages);
+        } catch (error) {
+            console.error(
+                "Failed to load messages:",
+                error
+            );
+        }
+    }
 
     async function handleSubmit(
         event: React.FormEvent<HTMLFormElement>
@@ -129,6 +207,48 @@ export default function Home() {
         setIsLoading(true);
 
         try {
+            let chatId = selectedChatId;
+
+            // Create a new chat if one is not currently selected
+            if (chatId === null) {
+                const chatResponse = await fetch("/api/chats", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        subject: selectedSubject
+                    })
+                });
+
+                const chatData = await chatResponse.json();
+
+                if (!chatResponse.ok) {
+                    console.error(
+                        "Failed to create chat:",
+                        chatData.error
+                    );
+
+                    alert(
+                        chatData.error ||
+                        "Failed to create chat."
+                    );
+
+                    return;
+                }
+
+                chatId = chatData.chat.id;
+
+                setSelectedChatId(chatId);
+
+                // Add the new chat to the sidebar
+                setChats((previousChats) => [
+                    chatData.chat,
+                    ...previousChats
+                ]);
+            }
+
+            // Send the question to the selected chat
             const response = await fetch("/api/query", {
                 method: "POST",
                 headers: {
@@ -136,14 +256,18 @@ export default function Home() {
                 },
                 body: JSON.stringify({
                     question: currentQuestion,
-                    subject: selectedSubject
+                    subject: selectedSubject,
+                    chatId: chatId
                 })
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                console.error(data);
+                console.error(
+                    "Question failed:",
+                    data.error
+                );
 
                 alert(
                     data.error ||
@@ -162,6 +286,15 @@ export default function Home() {
                 ...previousMessages,
                 assistantMessage
             ]);
+
+            // Refresh chat history so the new title appears
+            const chatsResponse = await fetch("/api/chats");
+
+            if (chatsResponse.ok) {
+                const chatsData = await chatsResponse.json();
+                setChats(chatsData.chats);
+            }
+
         } catch (error) {
             console.error(
                 "Question failed:",
@@ -248,6 +381,11 @@ export default function Home() {
         }
     }
 
+    function handleNewChat() {
+        setSelectedChatId(null);
+        setMessages([]);
+        setQuestion("");
+    }
     async function handleFileUpload() {
         if (selectedSubject === "") {
             alert("Please select a subject first.");
@@ -364,6 +502,28 @@ export default function Home() {
                     }
                 >
                     ×
+                </button>
+                <button
+                    className={`${styles.label} ${styles.newChatButton}`}
+                    type="button"
+                    onClick={handleNewChat}
+                >
+                    <span>New Chat</span>
+
+                    <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                    </svg>
                 </button>
 
                 <div className={styles.subjectSection}>
@@ -572,6 +732,39 @@ export default function Home() {
                         </p>
                     )}
                 </div>
+                <div className={styles.chatHistorySection}>
+                    <div className={styles.chatHistoryHeader}>
+                        <p className={styles.label}>
+                            Chat History
+                        </p>
+
+
+                    </div>
+                    {chats.length === 0 ? (
+                        <p className={styles.noChats}>
+                            No previous chats yet.
+                        </p>
+                    ) : (
+                        <div className={styles.chatHistoryList}>
+                            {chats.map((chat) => (
+                                <button
+                                    key={chat.id}
+                                    type="button"
+                                    className={`${styles.chatHistoryItem} ${
+                                        selectedChatId === chat.id
+                                            ? styles.activeChat
+                                            : ""
+                                    }`}
+                                    onClick={() => handleSelectChat(chat.id)}
+                                >
+        <span className={styles.chatHistorySubject}>
+            {chat.title}
+        </span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </aside>
 
             <section className={styles.chatArea}>
@@ -598,6 +791,7 @@ export default function Home() {
                                 )}
                             </div>
                         ))}
+
                         {isLoading && (
                             <div className={styles.typingIndicator}>
                                 <span></span>
@@ -605,8 +799,9 @@ export default function Home() {
                                 <span></span>
                             </div>
                         )}
-                    </div>
 
+                        <div ref={messagesEndRef} />
+                    </div>
                     <form
                         className={styles.form}
                         onSubmit={handleSubmit}

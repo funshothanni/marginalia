@@ -37,8 +37,8 @@
 .ragText {
     background: linear-gradient(
             90deg,
-            #7c3aed,
-            #a855f7
+            #afa65b,
+            #8a7e19
     );
 
     background-clip: text;
@@ -193,7 +193,7 @@
 }
 
 .select:focus {
-    border-color: #8b5cf6;
+    border-color: #afa65b;
 }
 
 .addSubjectButton {
@@ -240,7 +240,7 @@
 }
 
 .subjectInput:focus {
-    border-color: #8b5cf6;
+    border-color: #afa65b;
 }
 
 .saveSubjectButton {
@@ -251,7 +251,7 @@
     border: none;
     border-radius: 8px;
 
-    background: #7c3aed;
+    background: #afa65b;
     color: white;
 
     cursor: pointer;
@@ -260,7 +260,7 @@
 }
 
 .saveSubjectButton:hover {
-    background: #6d28d9;
+    background: #afa65b;
 }
 
 .uploadSection {
@@ -327,7 +327,7 @@
     border: none;
     border-radius: 8px;
 
-    background: #7c3aed;
+    background: #afa65b;
     color: white;
 
     cursor: pointer;
@@ -336,7 +336,7 @@
 }
 
 .uploadButton:hover {
-    background: #6d28d9;
+    background: #afa65b;
 }
 
 .uploadedFile {
@@ -402,7 +402,7 @@
 
     border-radius: 14px 14px 4px 14px;
 
-    background: #7c3aed;
+    background: #afa65b;
 
     color: white;
 
@@ -466,7 +466,7 @@
 }
 
 .input:focus {
-    border-color: #8b5cf6;
+    border-color: #afa65b;
 }
 
 .button {
@@ -621,4 +621,80 @@
 
 .deleteDocumentButton:hover {
     opacity: 1;
+}
+.chatHistorySection {
+    margin-top: 25px;
+}
+
+.chatHistoryList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.chatHistoryItem {
+    width: 100%;
+    padding: 10px 12px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: transparent;
+    color: white;
+
+    text-align: left;
+    cursor: pointer;
+
+    transition: background 0.2s ease;
+}
+
+.chatHistoryItem:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.chatHistorySubject {
+    display: block;
+
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.noChats {
+    font-size: 13px;
+    opacity: 0.6;
+}
+.activeChat {
+    background: rgb(175, 166, 91);
+}
+.chatHistoryHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chatHistoryHeader .label {
+    margin: 0;
+}
+.newChatButton {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    width: fit-content;
+    padding: 0;
+    margin-bottom: 18px;
+
+    border: none;
+    background: transparent;
+
+    cursor: pointer;
+}
+
+.newChatButton:hover {
+    opacity: 0.75;
+}
+
+.newChatButton svg {
+    flex-shrink: 0;
 }

@@ -2,6 +2,7 @@ import {createClient} from "@supabase/supabase-js";
 import {EmbeddedChunk} from "@/types/embeddedChunk";
 import {SearchResult} from "@/types/searchResult";
 import { Chat } from "../types/chat";
+// @ts-ignore
 import { Message } from "../types/message";
 
 const supabaseUrl = process.env.SUPABASE_URL;
