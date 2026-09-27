@@ -65,4 +65,6 @@ create table if not exists messages (
     role text not null check (role in ('user', 'assistant')),
     content text not null,
     created_at timestamptz not null default now()
+
 );
+
