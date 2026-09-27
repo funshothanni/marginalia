@@ -4,11 +4,13 @@ create extension if not exists vector;
 -- Store uploaded documents
 create table if not exists documents (
     id serial primary key,
+    user_id uuid not null references auth.users(id) on delete cascade,
     file_name text not null,
     file_hash text not null,
     subject text not null,
     created_at timestamptz not null default now(),
-    unique(subject, file_hash)
+    constraint documents_user_subject_file_hash_key
+    unique(user_id, subject, file_hash)
 );
 
 -- Store chunks and embeddings
@@ -52,6 +54,7 @@ $$;
 -- Store chat conversations
 create table if not exists chats (
     id serial primary key,
+    user_id uuid not null references auth.users(id) on delete cascade,
     title text not null,
     subject text not null,
     created_at timestamptz not null default now(),
