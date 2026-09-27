@@ -196,11 +196,14 @@ export async function getChats(userId: string): Promise<Chat[]> {
     return data;
 }
 
-export async function updateChatTimestamp( chatId: number): Promise<void> {
+export async function updateChatTimestamp(userId: string, chatId: number): Promise<void> {
     const { error } = await supabase
         .from("chats")
-        .update({updated_at: new Date().toISOString(),})
-        .eq("id", chatId);
+        .update({
+            updated_at: new Date().toISOString(),
+        })
+        .eq("id", chatId)
+        .eq("user_id", userId);
 
     if (error) {
         throw new Error(
@@ -209,13 +212,14 @@ export async function updateChatTimestamp( chatId: number): Promise<void> {
     }
 }
 
-export async function updateChatTitle( chatId: number, title: string): Promise<void> {
+export async function updateChatTitle(userId: string, chatId: number, title: string): Promise<void> {
     const { error } = await supabase
         .from("chats")
         .update({
             title,
         })
-        .eq("id", chatId);
+        .eq("id", chatId)
+        .eq("user_id", userId);
 
     if (error) {
         throw new Error(

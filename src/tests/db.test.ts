@@ -706,12 +706,19 @@ describe("getChats", () => {
 });
 
 describe("updateChatTimestamp", () => {
-    test("updates the chat timestamp", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: null,
-        });
+    test("updates the chat timestamp for the user", async () => {
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: null,
+            });
 
-        await updateChatTimestamp(7);
+        await updateChatTimestamp(
+            "test-user-id",
+            7
+        );
 
         expect(mockFrom).toHaveBeenCalledWith("chats");
 
@@ -723,28 +730,47 @@ describe("updateChatTimestamp", () => {
             "id",
             7
         );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "user_id",
+            "test-user-id"
+        );
     });
 
     test("throws an error when updating the timestamp fails", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: {
-                message: "Database unavailable",
-            },
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: {
+                    message: "Database unavailable",
+                },
+            });
 
-        await expect(updateChatTimestamp(7)).rejects.toThrow(
+        await expect(
+            updateChatTimestamp(
+                "test-user-id",
+                7
+            )
+        ).rejects.toThrow(
             "Failed to update chat timestamp: Database unavailable"
         );
     });
 });
 
 describe("updateChatTitle", () => {
-    test("updates the chat title", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: null,
-        });
+    test("updates the chat title for the user", async () => {
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: null,
+            });
 
         await updateChatTitle(
+            "test-user-id",
             7,
             "What is operant conditioning?"
         );
@@ -755,16 +781,37 @@ describe("updateChatTitle", () => {
             title: "What is operant conditioning?",
         });
 
-        expect(mockEq).toHaveBeenCalledWith("id", 7);
+        expect(mockEq).toHaveBeenCalledWith(
+            "id",
+            7
+        );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "user_id",
+            "test-user-id"
+        );
     });
 
     test("throws an error when updating the title fails", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: {
-                message: "Database unavailable",
-            },
-        });
-        await expect(updateChatTitle( 7, "What is operant conditioning?")).rejects.toThrow("Failed to update chat title: Database unavailable");
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: {
+                    message: "Database unavailable",
+                },
+            });
+
+        await expect(
+            updateChatTitle(
+                "test-user-id",
+                7,
+                "What is operant conditioning?"
+            )
+        ).rejects.toThrow(
+            "Failed to update chat title: Database unavailable"
+        );
     });
 });
 

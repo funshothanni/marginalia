@@ -51,14 +51,14 @@ export async function POST(request: Request) {
         if (chat.title === "New Chat") {
             const title =
                 question.trim().length > 50 ? `${question.trim().slice(0, 50)}...` : question.trim();
-            await updateChatTitle(chatId, title);
+            await updateChatTitle(user.id, chatId, title);
         }
 
         const conversationHistory = await getMessages(chatId);
         await createMessage(chatId, "user", question.trim());
         const answer = await askQuestion(question.trim(), chat.subject, conversationHistory);
         await createMessage( chatId, "assistant", answer);
-        await updateChatTimestamp(chatId);
+        await updateChatTimestamp(user.id, chatId);
 
         return NextResponse.json({ answer });
     } catch (error) {

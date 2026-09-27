@@ -64,10 +64,10 @@ describe("POST /api/query", () => {
         expect(mockCreateMessage).toHaveBeenNthCalledWith(1, 7, "user", "What is operant conditioning?");
         expect(mockCreateMessage).toHaveBeenNthCalledWith(2, 7, "assistant", "Operant conditioning is something in PSYC");
         expect(mockCreateMessage).toHaveBeenCalledTimes(2);
-        expect(mockUpdateChatTimestamp).toHaveBeenCalledWith(7);
+        expect(mockUpdateChatTimestamp).toHaveBeenCalledWith("test-user-id", 7);
         expect(mockUpdateChatTimestamp).toHaveBeenCalledTimes(1);
         expect(mockGetChat).toHaveBeenCalledWith("test-user-id", 7);
-        expect(mockUpdateChatTitle).toHaveBeenCalledWith(7, "What is operant conditioning?");
+        expect(mockUpdateChatTitle).toHaveBeenCalledWith("test-user-id", 7, "What is operant conditioning?");
         expect(mockGetMessages).toHaveBeenCalledWith(7);
     });
 
