@@ -46,7 +46,6 @@ export async function POST(request: Request) {
 
         const conversationHistory = await getMessages(chatId);
         await createMessage(chatId, "user", question.trim());
-        // @ts-ignore
         const answer = await askQuestion(question.trim(), chat.subject, conversationHistory);
         await createMessage( chatId, "assistant", answer);
         await updateChatTimestamp(chatId);
