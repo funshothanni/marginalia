@@ -54,10 +54,10 @@ export async function POST(request: Request) {
             await updateChatTitle(user.id, chatId, title);
         }
 
-        const conversationHistory = await getMessages(chatId);
-        await createMessage(chatId, "user", question.trim());
+        const conversationHistory = await getMessages(user.id, chatId);
+        await createMessage(user.id, chatId, "user", question.trim());
         const answer = await askQuestion(question.trim(), chat.subject, conversationHistory);
-        await createMessage( chatId, "assistant", answer);
+        await createMessage(user.id, chatId, "assistant", answer);
         await updateChatTimestamp(user.id, chatId);
 
         return NextResponse.json({ answer });

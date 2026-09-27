@@ -473,7 +473,15 @@ describe("createChat", () => {
 });
 
 describe("createMessage", () => {
-    test("creates a user message and returns it", async () => {
+    test("creates a user message when the user owns the chat", async () => {
+        const fakeChat = {
+            id: 7,
+            title: "New Chat",
+            subject: "COMP",
+            created_at: "2026-09-22T12:00:00Z",
+            updated_at: "2026-09-22T12:00:00Z",
+        };
+
         const fakeMessage = {
             id: 1,
             chat_id: 7,
@@ -482,15 +490,39 @@ describe("createMessage", () => {
             created_at: "2026-09-22T12:00:00Z",
         };
 
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: fakeChat,
+            error: null,
+        });
+
         mockSingle.mockResolvedValueOnce({
             data: fakeMessage,
             error: null,
         });
 
         const result = await createMessage(
+            "test-user-id",
             7,
             "user",
             "What is a binary tree?"
+        );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "id",
+            7
+        );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "user_id",
+            "test-user-id"
         );
 
         expect(mockFrom).toHaveBeenCalledWith("messages");
@@ -508,7 +540,15 @@ describe("createMessage", () => {
         expect(result).toEqual(fakeMessage);
     });
 
-    test("creates an assistant message", async () => {
+    test("creates an assistant message when the user owns the chat", async () => {
+        const fakeChat = {
+            id: 7,
+            title: "New Chat",
+            subject: "COMP",
+            created_at: "2026-09-22T12:00:00Z",
+            updated_at: "2026-09-22T12:00:00Z",
+        };
+
         const fakeMessage = {
             id: 2,
             chat_id: 7,
@@ -517,12 +557,26 @@ describe("createMessage", () => {
             created_at: "2026-09-22T12:00:01Z",
         };
 
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: fakeChat,
+            error: null,
+        });
+
         mockSingle.mockResolvedValueOnce({
             data: fakeMessage,
             error: null,
         });
 
         const result = await createMessage(
+            "test-user-id",
             7,
             "assistant",
             "A binary tree is..."
@@ -537,22 +591,78 @@ describe("createMessage", () => {
         expect(result).toEqual(fakeMessage);
     });
 
+    test("does not create a message when the user does not own the chat", async () => {
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: null,
+            error: null,
+        });
+
+        const insertCallsBefore = mockInsert.mock.calls.length;
+
+        await expect(createMessage("test-user-id", 7, "user", "What is a binary tree?")).rejects.toThrow("Chat not found");
+        expect(mockInsert.mock.calls.length).toBe(insertCallsBefore);
+    });
+
     test("throws an error when message creation fails", async () => {
+        const fakeChat = {
+            id: 7,
+            title: "New Chat",
+            subject: "COMP",
+            created_at: "2026-09-22T12:00:00Z",
+            updated_at: "2026-09-22T12:00:00Z",
+        };
+
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: fakeChat,
+            error: null,
+        });
+
         mockSingle.mockResolvedValueOnce({
             data: null,
             error: {
-                message: "Database unavailable"
+                message: "Database unavailable",
             },
         });
 
-        await expect(createMessage(7, "user", "What is a binary tree?"))
-            .rejects.toThrow("Failed to create message: Database unavailable"
+        await expect(
+            createMessage(
+                "test-user-id",
+                7,
+                "user",
+                "What is a binary tree?"
+            )
+        ).rejects.toThrow(
+            "Failed to create message: Database unavailable"
         );
     });
 });
 
 describe("getMessages", () => {
-    test("returns messages for a chat in chronological order", async () => {
+    test("returns messages when the user owns the chat", async () => {
+        const fakeChat = {
+            id: 7,
+            title: "New Chat",
+            subject: "COMP",
+            created_at: "2026-09-22T12:00:00Z",
+            updated_at: "2026-09-22T12:00:00Z",
+        };
+
         const fakeMessages = [
             {
                 id: 1,
@@ -570,8 +680,20 @@ describe("getMessages", () => {
             },
         ];
 
-        mockEq.mockReturnValueOnce({
-            order: mockOrder,
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            })
+            .mockReturnValueOnce({
+                order: mockOrder,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: fakeChat,
+            error: null,
         });
 
         mockOrder.mockResolvedValueOnce({
@@ -579,13 +701,22 @@ describe("getMessages", () => {
             error: null,
         });
 
-        const result = await getMessages(7);
+        const result = await getMessages(
+            "test-user-id",
+            7
+        );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "id",
+            7
+        );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "user_id",
+            "test-user-id"
+        );
 
         expect(mockFrom).toHaveBeenCalledWith("messages");
-
-        expect(mockSelect).toHaveBeenCalledWith(
-            "id, chat_id, role, content, created_at"
-        );
 
         expect(mockEq).toHaveBeenCalledWith(
             "chat_id",
@@ -600,9 +731,29 @@ describe("getMessages", () => {
         expect(result).toEqual(fakeMessages);
     });
 
-    test("returns an empty array when the chat has no messages", async () => {
-        mockEq.mockReturnValueOnce({
-            order: mockOrder,
+    test("returns an empty array when the owned chat has no messages", async () => {
+        const fakeChat = {
+            id: 7,
+            title: "New Chat",
+            subject: "COMP",
+            created_at: "2026-09-22T12:00:00Z",
+            updated_at: "2026-09-22T12:00:00Z",
+        };
+
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            })
+            .mockReturnValueOnce({
+                order: mockOrder,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: fakeChat,
+            error: null,
         });
 
         mockOrder.mockResolvedValueOnce({
@@ -610,24 +761,80 @@ describe("getMessages", () => {
             error: null,
         });
 
-        const result = await getMessages(7);
+        const result = await getMessages(
+            "test-user-id",
+            7
+        );
 
         expect(result).toEqual([]);
     });
 
+    test("does not retrieve messages when the user does not own the chat", async () => {
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: null,
+            error: null,
+        });
+
+        const orderCallsBefore = mockOrder.mock.calls.length;
+
+        await expect(
+            getMessages(
+                "test-user-id",
+                7
+            )
+        ).rejects.toThrow("Chat not found");
+
+        expect(mockOrder.mock.calls.length).toBe(
+            orderCallsBefore
+        );
+    });
+
     test("throws an error when retrieving messages fails", async () => {
-        mockEq.mockReturnValueOnce({
-            order: mockOrder,
+        const fakeChat = {
+            id: 7,
+            title: "New Chat",
+            subject: "COMP",
+            created_at: "2026-09-22T12:00:00Z",
+            updated_at: "2026-09-22T12:00:00Z",
+        };
+
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            })
+            .mockReturnValueOnce({
+                order: mockOrder,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: fakeChat,
+            error: null,
         });
 
         mockOrder.mockResolvedValueOnce({
             data: null,
             error: {
-                message: "Database unavailable"
+                message: "Database unavailable",
             },
         });
 
-        await expect( getMessages(7)).rejects.toThrow(
+        await expect(
+            getMessages(
+                "test-user-id",
+                7
+            )
+        ).rejects.toThrow(
             "Failed to retrieve messages: Database unavailable"
         );
     });

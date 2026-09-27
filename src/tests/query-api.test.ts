@@ -61,14 +61,14 @@ describe("POST /api/query", () => {
         expect(response.status).toBe(200);
         expect(body).toEqual({answer: "Operant conditioning is something in PSYC"});
         expect(mockAskQuestion).toHaveBeenCalledWith("What is operant conditioning?", "PSYC", []);
-        expect(mockCreateMessage).toHaveBeenNthCalledWith(1, 7, "user", "What is operant conditioning?");
-        expect(mockCreateMessage).toHaveBeenNthCalledWith(2, 7, "assistant", "Operant conditioning is something in PSYC");
+        expect(mockCreateMessage).toHaveBeenNthCalledWith(1, "test-user-id", 7, "user", "What is operant conditioning?");
+        expect(mockCreateMessage).toHaveBeenNthCalledWith(2, "test-user-id", 7, "assistant", "Operant conditioning is something in PSYC");
         expect(mockCreateMessage).toHaveBeenCalledTimes(2);
         expect(mockUpdateChatTimestamp).toHaveBeenCalledWith("test-user-id", 7);
         expect(mockUpdateChatTimestamp).toHaveBeenCalledTimes(1);
         expect(mockGetChat).toHaveBeenCalledWith("test-user-id", 7);
         expect(mockUpdateChatTitle).toHaveBeenCalledWith("test-user-id", 7, "What is operant conditioning?");
-        expect(mockGetMessages).toHaveBeenCalledWith(7);
+        expect(mockGetMessages).toHaveBeenCalledWith("test-user-id", 7);
     });
 
     it("returns 400 when no subject is provided", async () => {
@@ -254,7 +254,7 @@ describe("POST /api/query", () => {
         expect(response.status).toBe(500);
         expect(body).toEqual({error: "Something went wrong"});
         expect(mockAskQuestion).toHaveBeenCalledWith("What is operant conditioning?", "PSYC", []);
-        expect(mockCreateMessage).toHaveBeenCalledWith(7, "user", "What is operant conditioning?");
+        expect(mockCreateMessage).toHaveBeenCalledWith("test-user-id", 7, "user", "What is operant conditioning?");
         expect(mockCreateMessage).toHaveBeenCalledTimes(1);
     });
 
@@ -303,12 +303,8 @@ describe("POST /api/query", () => {
 
         const response = await POST(request);
         expect(response.status).toBe(200);
-        expect(mockGetMessages).toHaveBeenCalledWith(7);
-        expect(mockAskQuestion).toHaveBeenCalledWith(
-            "Can you give me an example of that?",
-            "PSYC",
-            previousMessages
-        );
+        expect(mockGetMessages).toHaveBeenCalledWith("test-user-id", 7);
+        expect(mockAskQuestion).toHaveBeenCalledWith("Can you give me an example of that?", "PSYC", previousMessages);
     });
 
     it("returns 401 when user is not authenticated", async () => {

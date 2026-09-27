@@ -148,10 +148,20 @@ export async function createChat(userId: string, subject: string, title: string 
     return data;
 }
 
-export async function createMessage(chatId: number, role: "user" | "assistant", content: string): Promise<Message> {
+export async function createMessage(userId: string, chatId: number, role: "user" | "assistant", content: string): Promise<Message> {
+    const chat = await getChat(userId, chatId);
+
+    if (!chat) {
+        throw new Error("Chat not found");
+    }
+
     const { data, error } = await supabase
         .from("messages")
-        .insert({ chat_id: chatId, role, content})
+        .insert({
+            chat_id: chatId,
+            role,
+            content,
+        })
         .select("id, chat_id, role, content, created_at")
         .single();
 
@@ -164,7 +174,13 @@ export async function createMessage(chatId: number, role: "user" | "assistant", 
     return data;
 }
 
-export async function getMessages(chatId: number): Promise<Message[]> {
+export async function getMessages(userId: string, chatId: number): Promise<Message[]> {
+    const chat = await getChat(userId, chatId);
+
+    if (!chat) {
+        throw new Error("Chat not found");
+    }
+
     const { data, error } = await supabase
         .from("messages")
         .select("id, chat_id, role, content, created_at")
