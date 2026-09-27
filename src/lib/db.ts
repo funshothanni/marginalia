@@ -128,10 +128,14 @@ export async function getDocumentsBySubject(subject: string) {
     return data;
 }
 
-export async function createChat( subject: string, title: string = "New Chat"): Promise<Chat> {
+export async function createChat(userId: string, subject: string, title: string = "New Chat"): Promise<Chat> {
     const { data, error } = await supabase
         .from("chats")
-        .insert({ subject, title,})
+        .insert({
+            user_id: userId,
+            subject,
+            title,
+        })
         .select("id, title, subject, created_at, updated_at")
         .single();
 

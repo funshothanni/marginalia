@@ -76,6 +76,20 @@ describe("GET /api/chats", () => {
             error: "Failed to retrieve chats",
         });
     });
+
+    test("returns 401 when user is not authenticated", async () => {
+        mockGetCurrentUser.mockResolvedValueOnce(null);
+
+        const response = await GET();
+        const data = await response.json();
+
+        expect(response.status).toBe(401);
+        expect(data).toEqual({
+            error: "Unauthorized",
+        });
+
+        expect(mockGetChats).not.toHaveBeenCalled();
+    });
 });
 
 
@@ -108,11 +122,7 @@ describe("POST /api/chats", () => {
         const data = await response.json();
 
         expect(response.status).toBe(201);
-
-        expect(mockCreateChat).toHaveBeenCalledWith(
-            "COMP"
-        );
-
+        expect(mockCreateChat).toHaveBeenCalledWith("test-user-id", "COMP");
         expect(data).toEqual({
             chat: fakeChat,
         });
@@ -171,7 +181,20 @@ describe("POST /api/chats", () => {
     test("returns 401 when user is not authenticated", async () => {
         mockGetCurrentUser.mockResolvedValueOnce(null);
 
-        const response = await GET();
+        const request = new NextRequest(
+            "http://localhost/api/chats",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    subject: "COMP",
+                }),
+            }
+        );
+
+        const response = await POST(request);
         const data = await response.json();
 
         expect(response.status).toBe(401);
@@ -179,7 +202,7 @@ describe("POST /api/chats", () => {
             error: "Unauthorized",
         });
 
-        expect(mockGetChats).not.toHaveBeenCalled();
+        expect(mockCreateChat).not.toHaveBeenCalled();
     });
 });
 

@@ -411,11 +411,12 @@ describe("createChat", () => {
             error: null,
         });
 
-        const result = await createChat("COMP");
+        const result = await createChat("test-user-id", "COMP");
 
         expect(mockFrom).toHaveBeenCalledWith("chats");
 
         expect(mockInsert).toHaveBeenCalledWith({
+            user_id: "test-user-id",
             subject: "COMP",
             title: "New Chat",
         });
@@ -442,11 +443,13 @@ describe("createChat", () => {
         });
 
         const result = await createChat(
+            "test-user-id",
             "COMP",
             "Binary Trees"
         );
 
         expect(mockInsert).toHaveBeenCalledWith({
+            user_id: "test-user-id",
             subject: "COMP",
             title: "Binary Trees",
         });
@@ -462,8 +465,11 @@ describe("createChat", () => {
             },
         });
 
-        await expect(createChat("COMP")).rejects.toThrow("Failed to create chat: Database unavailable");
-    });
+        await expect(
+            createChat("test-user-id", "COMP")
+        ).rejects.toThrow(
+            "Failed to create chat: Database unavailable"
+        );    });
 });
 
 describe("createMessage", () => {

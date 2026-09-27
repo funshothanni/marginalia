@@ -26,18 +26,37 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
     try {
+        const user = await getCurrentUser();
+
+        if (!user) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
         const body = await request.json();
         const subject = body.subject;
+
         if (!subject) {
             return NextResponse.json(
                 { error: "Subject is required" },
                 { status: 400 }
             );
         }
-        const chat = await createChat(subject);
-        return NextResponse.json({ chat }, { status: 201 });
+
+        const chat = await createChat(
+            user.id,
+            subject
+        );
+
+        return NextResponse.json(
+            { chat },
+            { status: 201 }
+        );
     } catch (error) {
         console.error("CREATE CHAT ERROR:", error);
+
         return NextResponse.json(
             { error: "Failed to create chat" },
             { status: 500 }
