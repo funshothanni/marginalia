@@ -833,24 +833,33 @@ describe("getChat", () => {
 
 describe("deleteChat", () => {
     test("deletes a chat by ID", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: null,
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: null,
+            });
 
-        await deleteChat(7);
+        await deleteChat("test-user-id", 7);
         expect(mockFrom).toHaveBeenCalledWith("chats");
         expect(mockDelete).toHaveBeenCalled();
         expect(mockEq).toHaveBeenCalledWith( "id", 7);
+        expect(mockEq).toHaveBeenCalledWith("user_id", "test-user-id");
     });
 
     test("throws an error when deleting a chat fails", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: {
-                message: "Database unavailable",
-            },
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: {
+                    message: "Database unavailable",
+                },
+            });
 
-        await expect( deleteChat(7)).rejects.toThrow(
+        await expect(deleteChat("test-user-id", 7)).rejects.toThrow(
             "Failed to delete chat: Database unavailable"
         );
     });

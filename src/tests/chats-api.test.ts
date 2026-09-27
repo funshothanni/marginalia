@@ -222,7 +222,7 @@ describe("DELETE /api/chats", () => {
 
         expect(response.status).toBe(200);
 
-        expect(mockDeleteChat).toHaveBeenCalledWith(7);
+        expect(mockDeleteChat).toHaveBeenCalledWith("test-user-id", 7);
 
         expect(data).toEqual({
             message: "Chat deleted successfully",
@@ -289,5 +289,26 @@ describe("DELETE /api/chats", () => {
         expect(data).toEqual({
             error: "Failed to delete chat",
         });
+    });
+
+    test("returns 401 when user is not authenticated", async () => {
+        mockGetCurrentUser.mockResolvedValueOnce(null);
+
+        const request = new NextRequest(
+            "http://localhost/api/chats?id=7",
+            {
+                method: "DELETE",
+            }
+        );
+
+        const response = await DELETE(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(401);
+        expect(data).toEqual({
+            error: "Unauthorized",
+        });
+
+        expect(mockDeleteChat).not.toHaveBeenCalled();
     });
 });

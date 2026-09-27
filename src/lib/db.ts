@@ -240,11 +240,12 @@ export async function getChat( chatId: number): Promise<Chat | null> {
     return data;
 }
 
-export async function deleteChat( chatId: number): Promise<void> {
+export async function deleteChat(userId: string, chatId: number): Promise<void> {
     const { error } = await supabase
         .from("chats")
         .delete()
-        .eq("id", chatId);
+        .eq("id", chatId)
+        .eq("user_id", userId);
 
     if (error) {
         throw new Error(

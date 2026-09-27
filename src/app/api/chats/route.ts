@@ -66,6 +66,15 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
     try {
+        const user = await getCurrentUser();
+
+        if (!user) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
         const chatId = request.nextUrl.searchParams.get("id");
 
         if (!chatId) {
@@ -84,8 +93,7 @@ export async function DELETE(request: NextRequest) {
             );
         }
 
-        await deleteChat(id);
-
+        await deleteChat(user.id, id);
         return NextResponse.json({
             message: "Chat deleted successfully"
         });
