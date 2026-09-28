@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
 import { ingestPdf } from "../../../lib/ingest";
+import { getCurrentUser } from "../../../lib/auth";
 import {DuplicateDocumentError} from "../../../lib/errors";
 
 export async function POST(request: Request) {
     try{
+        const user = await getCurrentUser();
+
+        if (!user) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
         const formData = await request.formData();
         const file = formData.get("file");
 
@@ -33,7 +43,7 @@ export async function POST(request: Request) {
             );
         }
 
-        const chunkCount = await ingestPdf(buffer, file.name, {subject: subject.trim()});
+        const chunkCount = await ingestPdf(user.id, buffer, file.name, { subject: subject.trim() });
         return NextResponse.json(
             {
                 message: "PDF uploaded successfully.",

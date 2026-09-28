@@ -1,12 +1,15 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { NextRequest } from "next/server";
+import {GET, DELETE} from "../app/api/documents/route";
 
 const {
     mockGetDocumentsBySubject,
-    mockDeleteDocument
+    mockDeleteDocument,
+    mockGetCurrentUser,
 } = vi.hoisted(() => ({
     mockGetDocumentsBySubject: vi.fn(),
     mockDeleteDocument: vi.fn(),
+    mockGetCurrentUser: vi.fn(),
 }));
 
 vi.mock("../lib/db", () => ({
@@ -14,13 +17,16 @@ vi.mock("../lib/db", () => ({
     deleteDocument: mockDeleteDocument,
 }));
 
-import {
-    GET,
-    DELETE
-} from "../app/api/documents/route";
+vi.mock("../lib/auth", () => ({
+    getCurrentUser: mockGetCurrentUser,
+}));
 
 beforeEach(() => {
     vi.clearAllMocks();
+
+    mockGetCurrentUser.mockResolvedValue({
+        id: "test-user-id",
+    });
 });
 
 describe("GET /api/documents", () => {
@@ -50,14 +56,8 @@ describe("GET /api/documents", () => {
         const data = await response.json();
 
         expect(response.status).toBe(200);
-
-        expect(
-            mockGetDocumentsBySubject
-        ).toHaveBeenCalledWith("COMP");
-
-        expect(data).toEqual({
-            documents: fakeDocuments
-        });
+        expect(mockGetDocumentsBySubject).toHaveBeenCalledWith("test-user-id", "COMP");
+        expect(data).toEqual({documents: fakeDocuments});
     });
 
     test("returns 400 when subject is missing", async () => {
@@ -67,9 +67,7 @@ describe("GET /api/documents", () => {
 
         const response = await GET(request);
         const data = await response.json();
-
         expect(response.status).toBe(400);
-
         expect(data).toEqual({
             error: "Subject is required"
         });
@@ -90,13 +88,24 @@ describe("GET /api/documents", () => {
 
         const response = await GET(request);
         const data = await response.json();
-
         expect(response.status).toBe(500);
-
-        expect(data).toEqual({
-            error: "Failed to retrieve documents"
-        });
+        expect(data).toEqual({error: "Failed to retrieve documents"});
     });
+
+    test("returns 401 when the user is not authenticated", async () => {
+        mockGetCurrentUser.mockResolvedValueOnce(null);
+
+        const request = new NextRequest(
+            "http://localhost/api/documents?subject=COMP"
+        );
+
+        const response = await GET(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(401);
+
+        expect(data).toEqual({error: "Unauthorized",});
+        expect(mockGetDocumentsBySubject).not.toHaveBeenCalled();});
 });
 
 describe("DELETE /api/documents", () => {
@@ -112,10 +121,8 @@ describe("DELETE /api/documents", () => {
         const data = await response.json();
 
         expect(response.status).toBe(200);
-        expect(mockDeleteDocument).toHaveBeenCalledWith(12);
-        expect(data).toEqual({
-            message: "Document deleted successfully"
-        });
+        expect(mockDeleteDocument).toHaveBeenCalledWith("test-user-id", 12);
+        expect(data).toEqual({message: "Document deleted successfully"});
     });
 
     test("returns 400 when document ID is missing", async () => {
@@ -169,5 +176,21 @@ describe("DELETE /api/documents", () => {
         expect(data).toEqual({
             error: "Failed to delete document"
         });
+    });
+
+    test("returns 401 when the user is not authenticated", async () => {
+        mockGetCurrentUser.mockResolvedValueOnce(null);
+
+        const request = new NextRequest(
+            "http://localhost/api/documents?id=12",
+            { method: "DELETE" }
+        );
+
+        const response = await DELETE(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(401);
+        expect(data).toEqual({error: "Unauthorized",});
+        expect(mockDeleteDocument).not.toHaveBeenCalled();
     });
 });

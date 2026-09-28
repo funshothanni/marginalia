@@ -1,9 +1,21 @@
 import { NextResponse } from "next/server";
 import { getSubjects } from "../../../lib/db";
+import { getCurrentUser } from "../../../lib/auth";
 
 export async function GET() {
     try {
-        const subjects = await getSubjects();
+        const user = await getCurrentUser();
+
+        if (!user) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
+        const subjects = await getSubjects(
+            user.id
+        );
 
         return NextResponse.json({ subjects });
     } catch (error) {

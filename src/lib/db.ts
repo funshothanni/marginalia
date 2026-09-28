@@ -52,43 +52,51 @@ export async function searchChunks(queryEmbedding: number[], subject: string, ma
     return data;
 }
 
-export async function findDocument(subject: string, fileHash: string) {
-    const {data, error} = await supabase
+export async function findDocument(userId: string, subject: string, fileHash: string) {
+    const { data, error } = await supabase
         .from("documents")
         .select("id, file_name")
+        .eq("user_id", userId)
         .eq("subject", subject)
         .eq("file_hash", fileHash)
         .maybeSingle();
 
     if (error) {
-        throw new Error(`Failed to check document: ${error.message}`);
+        throw new Error(
+            `Failed to check document: ${error.message}`
+        );
     }
+
     return data;
 }
 
-export async function createDocument(fileName: string, fileHash: string, subject: string) {
-    const {data, error} = await supabase
+export async function createDocument(userId: string, fileName: string, fileHash: string, subject: string) {
+    const { data, error } = await supabase
         .from("documents")
         .insert({
+            user_id: userId,
             file_name: fileName,
             file_hash: fileHash,
-            subject: subject,
+            subject,
         })
         .select("id")
         .single();
 
     if (error) {
-        throw new Error(`Failed to create document: ${error.message}`);
+        throw new Error(
+            `Failed to create document: ${error.message}`
+        );
     }
 
     return data;
 }
 
-export async function deleteDocument(documentId: number) {
+export async function deleteDocument(userId: string, documentId: number) {
     const { error } = await supabase
         .from("documents")
         .delete()
-        .eq("id", documentId);
+        .eq("id", documentId)
+        .eq("user_id", userId);
 
     if (error) {
         throw new Error(
@@ -98,25 +106,31 @@ export async function deleteDocument(documentId: number) {
 }
 
 //gets all the subjects in the database
-export async function getSubjects(): Promise<string[]> {
+export async function getSubjects(userId: string): Promise<string[]> {
     const { data, error } = await supabase
-    .from("documents")
-    .select("subject");
+        .from("documents")
+        .select("subject")
+        .eq("user_id", userId);
 
-    if (error){
-        throw new Error(`Failed to retrieve subjects: ${error.message}`);
+    if (error) {
+        throw new Error(
+            `Failed to retrieve subjects: ${error.message}`
+        );
     }
 
-    return [...new Set(
-        data.map(row => row.subject)
-    )];
+    return [
+        ...new Set(
+            data.map(row => row.subject)
+        ),
+    ];
 }
 
 //gets the document under a specific subject selected
-export async function getDocumentsBySubject(subject: string) {
+export async function getDocumentsBySubject(userId: string, subject: string) {
     const { data, error } = await supabase
         .from("documents")
         .select("id, file_name, created_at")
+        .eq("user_id", userId)
         .eq("subject", subject)
         .order("created_at", { ascending: false });
 
@@ -125,6 +139,7 @@ export async function getDocumentsBySubject(subject: string) {
             `Failed to retrieve documents: ${error.message}`
         );
     }
+
     return data;
 }
 

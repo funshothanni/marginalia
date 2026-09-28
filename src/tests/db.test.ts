@@ -81,14 +81,9 @@ mockSelect.mockImplementation((columns?: string) => {
     }
 
     if (columns === "subject") {
-        return Promise.resolve({
-            data: [
-                { subject: "PSYC" },
-                { subject: "COMP" },
-                { subject: "PSYC" },
-            ],
-            error: null,
-        });
+        return {
+            eq: mockEq,
+        };
     }
 
     if (columns === "id, file_name, created_at") {
@@ -237,10 +232,11 @@ describe("findDocument", () => {
             error: null,
         });
 
-        const result = await findDocument("PSYC", "abc123");
+        const result = await findDocument("test-user-id", "PSYC", "abc123")
 
         expect(mockFrom).toHaveBeenCalledWith("documents");
         expect(mockSelect).toHaveBeenCalledWith("id, file_name");
+        expect(mockEq).toHaveBeenCalledWith("user_id", "test-user-id");
         expect(mockEq).toHaveBeenCalledWith("subject", "PSYC");
         expect(mockEq).toHaveBeenCalledWith("file_hash", "abc123");
         expect(result).toEqual(fakeDocument);
@@ -252,7 +248,7 @@ describe("findDocument", () => {
             error: null,
         });
 
-        const result = await findDocument("PSYC", "not-found");
+        const result = await findDocument("test-user-id", "PSYC", "not-found")
         expect(result).toBeNull();
     });
 
@@ -262,8 +258,7 @@ describe("findDocument", () => {
             error: { message: "Database unavailable" },
         });
 
-        await expect(findDocument("PSYC", "abc123")).rejects.toThrow("Failed to check document: Database unavailable");
-    });
+        await expect(findDocument("test-user-id", "PSYC", "abc123")).rejects.toThrow("Failed to check document: Database unavailable");    });
 });
 
 
@@ -274,10 +269,9 @@ describe("createDocument", () => {
             error: null,
         });
 
-        const result = await createDocument("lecture.pdf", "abc123", "PSYC");
-
+        const result = await createDocument("test-user-id", "lecture.pdf", "abc123", "PSYC")
         expect(mockFrom).toHaveBeenCalledWith("documents");
-        expect(mockInsert).toHaveBeenCalledWith({file_name: "lecture.pdf", file_hash: "abc123", subject: "PSYC",});
+        expect(mockInsert).toHaveBeenCalledWith({user_id: "test-user-id", file_name: "lecture.pdf", file_hash: "abc123", subject: "PSYC",});
         expect(mockSelect).toHaveBeenCalledWith("id");
         expect(result).toEqual({ id: 12 });
     });
@@ -288,57 +282,73 @@ describe("createDocument", () => {
             error: { message: "Insert failed" },
         });
 
-        await expect(createDocument("lecture.pdf", "abc123", "PSYC")).rejects.toThrow("Failed to create document: Insert failed");
+        await expect(createDocument("test-user-id","lecture.pdf", "abc123", "PSYC")).rejects.toThrow("Failed to create document: Insert failed");
     });
 });
 
 describe("deleteDocument", () => {
-    test("deletes the document by id", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: null,
-        });
+    test("deletes the document by id for the user", async () => {
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: null,
+            });
 
-        await deleteDocument(12);
-
+        await deleteDocument("test-user-id", 12);
         expect(mockFrom).toHaveBeenCalledWith("documents");
         expect(mockDelete).toHaveBeenCalled();
         expect(mockEq).toHaveBeenCalledWith("id", 12);
+        expect(mockEq).toHaveBeenCalledWith("user_id", "test-user-id");
     });
 
     test("throws an error when document deletion fails", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: { message: "Delete failed" },
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: { message: "Delete failed" },
+            });
 
-        await expect(deleteDocument(12)).rejects.toThrow(
-            "Failed to delete document: Delete failed"
-        );
+        await expect(deleteDocument("test-user-id", 12)).rejects.toThrow("Failed to delete document: Delete failed");
     });
 });
 
 describe("getSubjects", () => {
-    test("returns unique subjects from uploaded documents", async () => {
-        const result = await getSubjects();
+    test("returns unique subjects for the user", async () => {
+        mockEq.mockResolvedValueOnce({
+            data: [
+                { subject: "PSYC" },
+                { subject: "COMP" },
+                { subject: "PSYC" },
+            ],
+            error: null,
+        });
+
+        const result = await getSubjects(
+            "test-user-id"
+        );
 
         expect(mockFrom).toHaveBeenCalledWith("documents");
         expect(mockSelect).toHaveBeenCalledWith("subject");
-        expect(result).toEqual(["PSYC", "COMP"]);
+        expect(mockEq).toHaveBeenCalledWith("user_id", "test-user-id");
+        expect(result).toEqual(["PSYC", "COMP",]);
     });
 
     test("throws an error when retrieving subjects fails", async () => {
-        mockSelect.mockResolvedValueOnce({
+        mockEq.mockResolvedValueOnce({
             data: null,
             error: { message: "Database unavailable" },
         });
 
-        await expect(getSubjects()).rejects.toThrow(
-            "Failed to retrieve subjects: Database unavailable"
-        );
+        await expect(getSubjects("test-user-id")).rejects.toThrow("Failed to retrieve subjects: Database unavailable");
     });
 });
 
 describe("getDocumentsBySubject", () => {
-    test("returns documents belonging to the selected subject", async () => {
+    test("returns documents belonging to the selected subject for the user", async () => {
         const fakeDocuments = [
             {
                 id: 2,
@@ -352,47 +362,47 @@ describe("getDocumentsBySubject", () => {
             },
         ];
 
-        mockEq.mockReturnValueOnce({
-            order: mockOrder,
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                order: mockOrder,
+            });
 
         mockOrder.mockResolvedValueOnce({
             data: fakeDocuments,
             error: null,
         });
 
-        const result = await getDocumentsBySubject("COMP");
-
-        expect(mockFrom).toHaveBeenCalledWith("documents");
-
-        expect(mockSelect).toHaveBeenCalledWith(
-            "id, file_name, created_at"
-        );
-
-        expect(mockEq).toHaveBeenCalledWith(
-            "subject",
+        const result = await getDocumentsBySubject(
+            "test-user-id",
             "COMP"
         );
-
-        expect(mockOrder).toHaveBeenCalledWith(
-            "created_at",
-            { ascending: false }
-        );
-
+        expect(mockFrom).toHaveBeenCalledWith("documents");
+        expect(mockSelect).toHaveBeenCalledWith("id, file_name, created_at");
+        expect(mockEq).toHaveBeenCalledWith("user_id", "test-user-id");
+        expect(mockEq).toHaveBeenCalledWith("subject", "COMP");
+        expect(mockOrder).toHaveBeenCalledWith("created_at", { ascending: false });
         expect(result).toEqual(fakeDocuments);
     });
 
     test("throws when retrieving documents fails", async () => {
-        mockEq.mockReturnValueOnce({
-            order: mockOrder,
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                order: mockOrder,
+            });
 
         mockOrder.mockResolvedValueOnce({
             data: null,
             error: { message: "Database unavailable" },
         });
 
-        await expect(getDocumentsBySubject("COMP")).rejects.toThrow("Failed to retrieve documents: Database unavailable");
+        await expect(getDocumentsBySubject("test-user-id", "COMP")).rejects.toThrow("Failed to retrieve documents: Database unavailable"
+        );
     });
 });
 
