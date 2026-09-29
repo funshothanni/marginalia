@@ -6,8 +6,6 @@ import {
 import { EmbeddedChunk } from "../types/embeddedChunk";
 
 const { mockFrom, mockInsert, mockSelect, mockRpc, mockEq, mockMaybeSingle, mockSingle, mockDelete, mockOrder, mockUpdate } = vi.hoisted(() => {
-    process.env.SUPABASE_URL = "https://fake-project.supabase.co";
-    process.env.SUPABASE_SECRET_KEY = "fake-secret-key";
     return {
         mockFrom: vi.fn(),
         mockInsert: vi.fn(),
@@ -22,14 +20,12 @@ const { mockFrom, mockInsert, mockSelect, mockRpc, mockEq, mockMaybeSingle, mock
     };
 });
 
-vi.mock("@supabase/supabase-js", () => {
-    return {
-        createClient: vi.fn(() => ({
-            from: mockFrom,
-            rpc: mockRpc,
-        })),
-    };
-});
+vi.mock("../lib/supabase/server", () => ({
+    createClient: vi.fn(async () => ({
+        from: mockFrom,
+        rpc: mockRpc,
+    })),
+}));
 
 mockFrom.mockImplementation((table: string) => {
     if (table === "note_chunks") {

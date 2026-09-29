@@ -1,22 +1,16 @@
-import {createClient} from "@supabase/supabase-js";
 import {EmbeddedChunk} from "@/types/embeddedChunk";
 import {SearchResult} from "@/types/searchResult";
 import { Chat } from "../types/chat";
 import { Message } from "../types/message";
-
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY;
-
-if (!supabaseUrl || !supabaseSecretKey) {
-    throw new Error("Missing Supabase environment variables.");
-}
-
-const supabase = createClient(supabaseUrl, supabaseSecretKey);
+import { createClient as createAuthenticatedClient } from "./supabase/server";
 
 export async function insertChunks(chunks: EmbeddedChunk[], documentId: number) {
     if (chunks.length === 0) {
         return [];
     }
+
+    const supabase = await createAuthenticatedClient();
+
     const rows = chunks.map(chunk => {
         return {
             text: chunk.text,
@@ -28,18 +22,20 @@ export async function insertChunks(chunks: EmbeddedChunk[], documentId: number) 
         };
     });
 
-    const {data, error} = await supabase
+    const { data, error } = await supabase
         .from("note_chunks")
         .insert(rows)
         .select();
 
     if (error) {
-        throw new Error(`Failed to insert chunks: ${error.message}`)
+        throw new Error(`Failed to insert chunks: ${error.message}`);
     }
     return data;
 }
 
 export async function searchChunks(userId: string, queryEmbedding: number[], subject: string, matchCount: number = 5): Promise<SearchResult[]> {
+    const supabase = await createAuthenticatedClient();
+
     const { data, error } = await supabase.rpc(
         "match_note_chunks",
         {
@@ -60,6 +56,7 @@ export async function searchChunks(userId: string, queryEmbedding: number[], sub
 }
 
 export async function findDocument(userId: string, subject: string, fileHash: string) {
+    const supabase = await createAuthenticatedClient();
     const { data, error } = await supabase
         .from("documents")
         .select("id, file_name")
@@ -78,6 +75,7 @@ export async function findDocument(userId: string, subject: string, fileHash: st
 }
 
 export async function createDocument(userId: string, fileName: string, fileHash: string, subject: string) {
+    const supabase = await createAuthenticatedClient();
     const { data, error } = await supabase
         .from("documents")
         .insert({
@@ -99,6 +97,7 @@ export async function createDocument(userId: string, fileName: string, fileHash:
 }
 
 export async function deleteDocument(userId: string, documentId: number) {
+    const supabase = await createAuthenticatedClient();
     const { error } = await supabase
         .from("documents")
         .delete()
@@ -114,6 +113,7 @@ export async function deleteDocument(userId: string, documentId: number) {
 
 //gets all the subjects in the database
 export async function getSubjects(userId: string): Promise<string[]> {
+    const supabase = await createAuthenticatedClient();
     const { data, error } = await supabase
         .from("documents")
         .select("subject")
@@ -134,6 +134,7 @@ export async function getSubjects(userId: string): Promise<string[]> {
 
 //gets the document under a specific subject selected
 export async function getDocumentsBySubject(userId: string, subject: string) {
+    const supabase = await createAuthenticatedClient();
     const { data, error } = await supabase
         .from("documents")
         .select("id, file_name, created_at")
@@ -151,6 +152,7 @@ export async function getDocumentsBySubject(userId: string, subject: string) {
 }
 
 export async function createChat(userId: string, subject: string, title: string = "New Chat"): Promise<Chat> {
+    const supabase = await createAuthenticatedClient();
     const { data, error } = await supabase
         .from("chats")
         .insert({
@@ -171,6 +173,7 @@ export async function createChat(userId: string, subject: string, title: string 
 }
 
 export async function createMessage(userId: string, chatId: number, role: "user" | "assistant", content: string): Promise<Message> {
+    const supabase = await createAuthenticatedClient();
     const chat = await getChat(userId, chatId);
 
     if (!chat) {
@@ -197,6 +200,7 @@ export async function createMessage(userId: string, chatId: number, role: "user"
 }
 
 export async function getMessages(userId: string, chatId: number): Promise<Message[]> {
+    const supabase = await createAuthenticatedClient();
     const chat = await getChat(userId, chatId);
 
     if (!chat) {
@@ -219,6 +223,7 @@ export async function getMessages(userId: string, chatId: number): Promise<Messa
 }
 
 export async function getChats(userId: string): Promise<Chat[]> {
+    const supabase = await createAuthenticatedClient();
     const { data, error } = await supabase
         .from("chats")
         .select("id, title, subject, created_at, updated_at")
@@ -235,6 +240,7 @@ export async function getChats(userId: string): Promise<Chat[]> {
 }
 
 export async function updateChatTimestamp(userId: string, chatId: number): Promise<void> {
+    const supabase = await createAuthenticatedClient();
     const { error } = await supabase
         .from("chats")
         .update({
@@ -251,6 +257,7 @@ export async function updateChatTimestamp(userId: string, chatId: number): Promi
 }
 
 export async function updateChatTitle(userId: string, chatId: number, title: string): Promise<void> {
+    const supabase = await createAuthenticatedClient();
     const { error } = await supabase
         .from("chats")
         .update({
@@ -267,6 +274,7 @@ export async function updateChatTitle(userId: string, chatId: number, title: str
 }
 
 export async function getChat(userId: string, chatId: number): Promise<Chat | null> {
+    const supabase = await createAuthenticatedClient();
     const { data, error } = await supabase
         .from("chats")
         .select("id, title, subject, created_at, updated_at")
@@ -284,6 +292,7 @@ export async function getChat(userId: string, chatId: number): Promise<Chat | nu
 }
 
 export async function deleteChat(userId: string, chatId: number): Promise<void> {
+    const supabase = await createAuthenticatedClient();
     const { error } = await supabase
         .from("chats")
         .delete()
