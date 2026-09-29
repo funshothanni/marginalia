@@ -39,16 +39,23 @@ export async function insertChunks(chunks: EmbeddedChunk[], documentId: number) 
     return data;
 }
 
-export async function searchChunks(queryEmbedding: number[], subject: string, matchCount: number = 5): Promise<SearchResult[]> {
-    const {data, error} = await supabase.rpc("match_note_chunks", {
-        query_embedding: queryEmbedding,
-        match_subject: subject,
-        match_count: matchCount,
-    });
+export async function searchChunks(userId: string, queryEmbedding: number[], subject: string, matchCount: number = 5): Promise<SearchResult[]> {
+    const { data, error } = await supabase.rpc(
+        "match_note_chunks",
+        {
+            query_embedding: queryEmbedding,
+            match_subject: subject,
+            match_user_id: userId,
+            match_count: matchCount,
+        }
+    );
 
     if (error) {
-        throw new Error(`Failed to retrieve chunks: ${error.message}`);
+        throw new Error(
+            `Failed to retrieve chunks: ${error.message}`
+        );
     }
+
     return data;
 }
 

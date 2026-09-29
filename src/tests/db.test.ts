@@ -200,14 +200,14 @@ describe("insertChunks", () => {
             error: null,
         });
 
-        const result = await searchChunks(fakeEmbedding, fakeSubject, 5);
+        const result = await searchChunks(  "test-user-id", fakeEmbedding, fakeSubject, 5);
         expect(result).toEqual(fakeResults);
         expect(mockRpc).toHaveBeenCalledWith("match_note_chunks", {
             query_embedding: fakeEmbedding,
             match_subject: fakeSubject,
+            match_user_id: "test-user-id",
             match_count: 5,
         });
-
     })
 
     test("throws an error when chunk retrieval fails", async () => {
@@ -216,8 +216,7 @@ describe("insertChunks", () => {
             error: { message: "RPC failed" },
         });
 
-        await expect(searchChunks([0.1, 0.2, 0.3], "MATH", 5)).rejects.toThrow("Failed to retrieve chunks: RPC failed");
-    });
+        await expect(searchChunks("test-user-id", [0.1, 0.2, 0.3], "MATH", 5)).rejects.toThrow("Failed to retrieve chunks: RPC failed");    });
 });
 
 describe("findDocument", () => {

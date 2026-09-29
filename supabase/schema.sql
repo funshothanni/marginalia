@@ -24,10 +24,11 @@ create table if not exists note_chunks (
     document_id integer not null references documents(id) on delete cascade
 );
 
--- Search for the most relevant chunks within a subject
+-- Search for the most relevant chunks within a user's subject
 create or replace function match_note_chunks(
     query_embedding vector(1536),
     match_subject text,
+    match_user_id uuid,
     match_count int
 )
 returns table(
@@ -40,14 +41,17 @@ returns table(
 language sql
 as $$
 select
-    note_chunks.id,
-    note_chunks.text,
-    note_chunks.source_doc,
-    note_chunks.metadata,
-    1 - (note_chunks.embedding <=> query_embedding) as similarity
-from note_chunks
-where note_chunks.metadata->>'subject' = match_subject
-order by note_chunks.embedding <=> query_embedding
+    nc.id,
+    nc.text,
+    nc.source_doc,
+    nc.metadata,
+    1 - (nc.embedding <=> query_embedding) as similarity
+from note_chunks nc
+         join documents d
+              on d.id = nc.document_id
+where d.user_id = match_user_id
+  and d.subject = match_subject
+order by nc.embedding <=> query_embedding
 limit match_count;
 $$;
 

@@ -60,8 +60,7 @@ describe("POST /api/query", () => {
 
         expect(response.status).toBe(200);
         expect(body).toEqual({answer: "Operant conditioning is something in PSYC"});
-        expect(mockAskQuestion).toHaveBeenCalledWith("What is operant conditioning?", "PSYC", []);
-        expect(mockCreateMessage).toHaveBeenNthCalledWith(1, "test-user-id", 7, "user", "What is operant conditioning?");
+        expect(mockAskQuestion).toHaveBeenCalledWith("test-user-id", "What is operant conditioning?", "PSYC", []);expect(mockCreateMessage).toHaveBeenNthCalledWith(1, "test-user-id", 7, "user", "What is operant conditioning?");
         expect(mockCreateMessage).toHaveBeenNthCalledWith(2, "test-user-id", 7, "assistant", "Operant conditioning is something in PSYC");
         expect(mockCreateMessage).toHaveBeenCalledTimes(2);
         expect(mockUpdateChatTimestamp).toHaveBeenCalledWith("test-user-id", 7);
@@ -253,7 +252,7 @@ describe("POST /api/query", () => {
 
         expect(response.status).toBe(500);
         expect(body).toEqual({error: "Something went wrong"});
-        expect(mockAskQuestion).toHaveBeenCalledWith("What is operant conditioning?", "PSYC", []);
+        expect(mockAskQuestion).toHaveBeenCalledWith("test-user-id", "What is operant conditioning?", "PSYC", []);
         expect(mockCreateMessage).toHaveBeenCalledWith("test-user-id", 7, "user", "What is operant conditioning?");
         expect(mockCreateMessage).toHaveBeenCalledTimes(1);
     });
@@ -304,7 +303,7 @@ describe("POST /api/query", () => {
         const response = await POST(request);
         expect(response.status).toBe(200);
         expect(mockGetMessages).toHaveBeenCalledWith("test-user-id", 7);
-        expect(mockAskQuestion).toHaveBeenCalledWith("Can you give me an example of that?", "PSYC", previousMessages);
+        expect(mockAskQuestion).toHaveBeenCalledWith("test-user-id", "Can you give me an example of that?", "PSYC", previousMessages);
     });
 
     it("returns 401 when user is not authenticated", async () => {

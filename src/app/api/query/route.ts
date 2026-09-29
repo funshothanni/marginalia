@@ -56,7 +56,7 @@ export async function POST(request: Request) {
 
         const conversationHistory = await getMessages(user.id, chatId);
         await createMessage(user.id, chatId, "user", question.trim());
-        const answer = await askQuestion(question.trim(), chat.subject, conversationHistory);
+        const answer = await askQuestion(user.id, question.trim(), chat.subject, conversationHistory);
         await createMessage(user.id, chatId, "assistant", answer);
         await updateChatTimestamp(user.id, chatId);
 
