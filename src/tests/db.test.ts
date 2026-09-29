@@ -68,7 +68,10 @@ mockInsert.mockReturnValue({
 
 mockSelect.mockImplementation((columns?: string) => {
     if (columns === "id, file_name") {
-        return documentQuery;
+        return {
+            eq: mockEq,
+            maybeSingle: mockMaybeSingle,
+        };
     }
 
     if (columns === "id") {
@@ -78,14 +81,9 @@ mockSelect.mockImplementation((columns?: string) => {
     }
 
     if (columns === "subject") {
-        return Promise.resolve({
-            data: [
-                { subject: "PSYC" },
-                { subject: "COMP" },
-                { subject: "PSYC" },
-            ],
-            error: null,
-        });
+        return {
+            eq: mockEq,
+        };
     }
 
     if (columns === "id, file_name, created_at") {
@@ -115,15 +113,19 @@ mockSelect.mockImplementation((columns?: string) => {
     });
 });
 
-const documentQuery = {
+mockEq.mockReturnValue({
     eq: mockEq,
     maybeSingle: mockMaybeSingle,
-};
+    order: mockOrder,
+});
 
-mockEq.mockReturnValue(documentQuery);
-mockDelete.mockReturnValue({eq: mockEq,});
+mockDelete.mockReturnValue({
+    eq: mockEq,
+});
 
-mockUpdate.mockReturnValue({eq: mockEq,});
+mockUpdate.mockReturnValue({
+    eq: mockEq,
+});
 
 describe("insertChunks", () => {
     test("returns an empty array and does not contact Supabase when given no chunks", async () => {
@@ -198,14 +200,14 @@ describe("insertChunks", () => {
             error: null,
         });
 
-        const result = await searchChunks(fakeEmbedding, fakeSubject, 5);
+        const result = await searchChunks(  "test-user-id", fakeEmbedding, fakeSubject, 5);
         expect(result).toEqual(fakeResults);
         expect(mockRpc).toHaveBeenCalledWith("match_note_chunks", {
             query_embedding: fakeEmbedding,
             match_subject: fakeSubject,
+            match_user_id: "test-user-id",
             match_count: 5,
         });
-
     })
 
     test("throws an error when chunk retrieval fails", async () => {
@@ -214,8 +216,7 @@ describe("insertChunks", () => {
             error: { message: "RPC failed" },
         });
 
-        await expect(searchChunks([0.1, 0.2, 0.3], "MATH", 5)).rejects.toThrow("Failed to retrieve chunks: RPC failed");
-    });
+        await expect(searchChunks("test-user-id", [0.1, 0.2, 0.3], "MATH", 5)).rejects.toThrow("Failed to retrieve chunks: RPC failed");    });
 });
 
 describe("findDocument", () => {
@@ -230,10 +231,11 @@ describe("findDocument", () => {
             error: null,
         });
 
-        const result = await findDocument("PSYC", "abc123");
+        const result = await findDocument("test-user-id", "PSYC", "abc123")
 
         expect(mockFrom).toHaveBeenCalledWith("documents");
         expect(mockSelect).toHaveBeenCalledWith("id, file_name");
+        expect(mockEq).toHaveBeenCalledWith("user_id", "test-user-id");
         expect(mockEq).toHaveBeenCalledWith("subject", "PSYC");
         expect(mockEq).toHaveBeenCalledWith("file_hash", "abc123");
         expect(result).toEqual(fakeDocument);
@@ -245,7 +247,7 @@ describe("findDocument", () => {
             error: null,
         });
 
-        const result = await findDocument("PSYC", "not-found");
+        const result = await findDocument("test-user-id", "PSYC", "not-found")
         expect(result).toBeNull();
     });
 
@@ -255,8 +257,7 @@ describe("findDocument", () => {
             error: { message: "Database unavailable" },
         });
 
-        await expect(findDocument("PSYC", "abc123")).rejects.toThrow("Failed to check document: Database unavailable");
-    });
+        await expect(findDocument("test-user-id", "PSYC", "abc123")).rejects.toThrow("Failed to check document: Database unavailable");    });
 });
 
 
@@ -267,10 +268,9 @@ describe("createDocument", () => {
             error: null,
         });
 
-        const result = await createDocument("lecture.pdf", "abc123", "PSYC");
-
+        const result = await createDocument("test-user-id", "lecture.pdf", "abc123", "PSYC")
         expect(mockFrom).toHaveBeenCalledWith("documents");
-        expect(mockInsert).toHaveBeenCalledWith({file_name: "lecture.pdf", file_hash: "abc123", subject: "PSYC",});
+        expect(mockInsert).toHaveBeenCalledWith({user_id: "test-user-id", file_name: "lecture.pdf", file_hash: "abc123", subject: "PSYC",});
         expect(mockSelect).toHaveBeenCalledWith("id");
         expect(result).toEqual({ id: 12 });
     });
@@ -281,57 +281,73 @@ describe("createDocument", () => {
             error: { message: "Insert failed" },
         });
 
-        await expect(createDocument("lecture.pdf", "abc123", "PSYC")).rejects.toThrow("Failed to create document: Insert failed");
+        await expect(createDocument("test-user-id","lecture.pdf", "abc123", "PSYC")).rejects.toThrow("Failed to create document: Insert failed");
     });
 });
 
 describe("deleteDocument", () => {
-    test("deletes the document by id", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: null,
-        });
+    test("deletes the document by id for the user", async () => {
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: null,
+            });
 
-        await deleteDocument(12);
-
+        await deleteDocument("test-user-id", 12);
         expect(mockFrom).toHaveBeenCalledWith("documents");
         expect(mockDelete).toHaveBeenCalled();
         expect(mockEq).toHaveBeenCalledWith("id", 12);
+        expect(mockEq).toHaveBeenCalledWith("user_id", "test-user-id");
     });
 
     test("throws an error when document deletion fails", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: { message: "Delete failed" },
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: { message: "Delete failed" },
+            });
 
-        await expect(deleteDocument(12)).rejects.toThrow(
-            "Failed to delete document: Delete failed"
-        );
+        await expect(deleteDocument("test-user-id", 12)).rejects.toThrow("Failed to delete document: Delete failed");
     });
 });
 
 describe("getSubjects", () => {
-    test("returns unique subjects from uploaded documents", async () => {
-        const result = await getSubjects();
+    test("returns unique subjects for the user", async () => {
+        mockEq.mockResolvedValueOnce({
+            data: [
+                { subject: "PSYC" },
+                { subject: "COMP" },
+                { subject: "PSYC" },
+            ],
+            error: null,
+        });
+
+        const result = await getSubjects(
+            "test-user-id"
+        );
 
         expect(mockFrom).toHaveBeenCalledWith("documents");
         expect(mockSelect).toHaveBeenCalledWith("subject");
-        expect(result).toEqual(["PSYC", "COMP"]);
+        expect(mockEq).toHaveBeenCalledWith("user_id", "test-user-id");
+        expect(result).toEqual(["PSYC", "COMP",]);
     });
 
     test("throws an error when retrieving subjects fails", async () => {
-        mockSelect.mockResolvedValueOnce({
+        mockEq.mockResolvedValueOnce({
             data: null,
             error: { message: "Database unavailable" },
         });
 
-        await expect(getSubjects()).rejects.toThrow(
-            "Failed to retrieve subjects: Database unavailable"
-        );
+        await expect(getSubjects("test-user-id")).rejects.toThrow("Failed to retrieve subjects: Database unavailable");
     });
 });
 
 describe("getDocumentsBySubject", () => {
-    test("returns documents belonging to the selected subject", async () => {
+    test("returns documents belonging to the selected subject for the user", async () => {
         const fakeDocuments = [
             {
                 id: 2,
@@ -345,47 +361,47 @@ describe("getDocumentsBySubject", () => {
             },
         ];
 
-        mockEq.mockReturnValueOnce({
-            order: mockOrder,
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                order: mockOrder,
+            });
 
         mockOrder.mockResolvedValueOnce({
             data: fakeDocuments,
             error: null,
         });
 
-        const result = await getDocumentsBySubject("COMP");
-
-        expect(mockFrom).toHaveBeenCalledWith("documents");
-
-        expect(mockSelect).toHaveBeenCalledWith(
-            "id, file_name, created_at"
-        );
-
-        expect(mockEq).toHaveBeenCalledWith(
-            "subject",
+        const result = await getDocumentsBySubject(
+            "test-user-id",
             "COMP"
         );
-
-        expect(mockOrder).toHaveBeenCalledWith(
-            "created_at",
-            { ascending: false }
-        );
-
+        expect(mockFrom).toHaveBeenCalledWith("documents");
+        expect(mockSelect).toHaveBeenCalledWith("id, file_name, created_at");
+        expect(mockEq).toHaveBeenCalledWith("user_id", "test-user-id");
+        expect(mockEq).toHaveBeenCalledWith("subject", "COMP");
+        expect(mockOrder).toHaveBeenCalledWith("created_at", { ascending: false });
         expect(result).toEqual(fakeDocuments);
     });
 
     test("throws when retrieving documents fails", async () => {
-        mockEq.mockReturnValueOnce({
-            order: mockOrder,
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                order: mockOrder,
+            });
 
         mockOrder.mockResolvedValueOnce({
             data: null,
             error: { message: "Database unavailable" },
         });
 
-        await expect(getDocumentsBySubject("COMP")).rejects.toThrow("Failed to retrieve documents: Database unavailable");
+        await expect(getDocumentsBySubject("test-user-id", "COMP")).rejects.toThrow("Failed to retrieve documents: Database unavailable"
+        );
     });
 });
 
@@ -404,11 +420,12 @@ describe("createChat", () => {
             error: null,
         });
 
-        const result = await createChat("COMP");
+        const result = await createChat("test-user-id", "COMP");
 
         expect(mockFrom).toHaveBeenCalledWith("chats");
 
         expect(mockInsert).toHaveBeenCalledWith({
+            user_id: "test-user-id",
             subject: "COMP",
             title: "New Chat",
         });
@@ -435,11 +452,13 @@ describe("createChat", () => {
         });
 
         const result = await createChat(
+            "test-user-id",
             "COMP",
             "Binary Trees"
         );
 
         expect(mockInsert).toHaveBeenCalledWith({
+            user_id: "test-user-id",
             subject: "COMP",
             title: "Binary Trees",
         });
@@ -455,12 +474,23 @@ describe("createChat", () => {
             },
         });
 
-        await expect(createChat("COMP")).rejects.toThrow("Failed to create chat: Database unavailable");
-    });
+        await expect(
+            createChat("test-user-id", "COMP")
+        ).rejects.toThrow(
+            "Failed to create chat: Database unavailable"
+        );    });
 });
 
 describe("createMessage", () => {
-    test("creates a user message and returns it", async () => {
+    test("creates a user message when the user owns the chat", async () => {
+        const fakeChat = {
+            id: 7,
+            title: "New Chat",
+            subject: "COMP",
+            created_at: "2026-09-22T12:00:00Z",
+            updated_at: "2026-09-22T12:00:00Z",
+        };
+
         const fakeMessage = {
             id: 1,
             chat_id: 7,
@@ -469,15 +499,39 @@ describe("createMessage", () => {
             created_at: "2026-09-22T12:00:00Z",
         };
 
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: fakeChat,
+            error: null,
+        });
+
         mockSingle.mockResolvedValueOnce({
             data: fakeMessage,
             error: null,
         });
 
         const result = await createMessage(
+            "test-user-id",
             7,
             "user",
             "What is a binary tree?"
+        );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "id",
+            7
+        );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "user_id",
+            "test-user-id"
         );
 
         expect(mockFrom).toHaveBeenCalledWith("messages");
@@ -495,7 +549,15 @@ describe("createMessage", () => {
         expect(result).toEqual(fakeMessage);
     });
 
-    test("creates an assistant message", async () => {
+    test("creates an assistant message when the user owns the chat", async () => {
+        const fakeChat = {
+            id: 7,
+            title: "New Chat",
+            subject: "COMP",
+            created_at: "2026-09-22T12:00:00Z",
+            updated_at: "2026-09-22T12:00:00Z",
+        };
+
         const fakeMessage = {
             id: 2,
             chat_id: 7,
@@ -504,12 +566,26 @@ describe("createMessage", () => {
             created_at: "2026-09-22T12:00:01Z",
         };
 
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: fakeChat,
+            error: null,
+        });
+
         mockSingle.mockResolvedValueOnce({
             data: fakeMessage,
             error: null,
         });
 
         const result = await createMessage(
+            "test-user-id",
             7,
             "assistant",
             "A binary tree is..."
@@ -524,22 +600,78 @@ describe("createMessage", () => {
         expect(result).toEqual(fakeMessage);
     });
 
+    test("does not create a message when the user does not own the chat", async () => {
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: null,
+            error: null,
+        });
+
+        const insertCallsBefore = mockInsert.mock.calls.length;
+
+        await expect(createMessage("test-user-id", 7, "user", "What is a binary tree?")).rejects.toThrow("Chat not found");
+        expect(mockInsert.mock.calls.length).toBe(insertCallsBefore);
+    });
+
     test("throws an error when message creation fails", async () => {
+        const fakeChat = {
+            id: 7,
+            title: "New Chat",
+            subject: "COMP",
+            created_at: "2026-09-22T12:00:00Z",
+            updated_at: "2026-09-22T12:00:00Z",
+        };
+
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: fakeChat,
+            error: null,
+        });
+
         mockSingle.mockResolvedValueOnce({
             data: null,
             error: {
-                message: "Database unavailable"
+                message: "Database unavailable",
             },
         });
 
-        await expect(createMessage(7, "user", "What is a binary tree?"))
-            .rejects.toThrow("Failed to create message: Database unavailable"
+        await expect(
+            createMessage(
+                "test-user-id",
+                7,
+                "user",
+                "What is a binary tree?"
+            )
+        ).rejects.toThrow(
+            "Failed to create message: Database unavailable"
         );
     });
 });
 
 describe("getMessages", () => {
-    test("returns messages for a chat in chronological order", async () => {
+    test("returns messages when the user owns the chat", async () => {
+        const fakeChat = {
+            id: 7,
+            title: "New Chat",
+            subject: "COMP",
+            created_at: "2026-09-22T12:00:00Z",
+            updated_at: "2026-09-22T12:00:00Z",
+        };
+
         const fakeMessages = [
             {
                 id: 1,
@@ -557,8 +689,20 @@ describe("getMessages", () => {
             },
         ];
 
-        mockEq.mockReturnValueOnce({
-            order: mockOrder,
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            })
+            .mockReturnValueOnce({
+                order: mockOrder,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: fakeChat,
+            error: null,
         });
 
         mockOrder.mockResolvedValueOnce({
@@ -566,13 +710,22 @@ describe("getMessages", () => {
             error: null,
         });
 
-        const result = await getMessages(7);
+        const result = await getMessages(
+            "test-user-id",
+            7
+        );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "id",
+            7
+        );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "user_id",
+            "test-user-id"
+        );
 
         expect(mockFrom).toHaveBeenCalledWith("messages");
-
-        expect(mockSelect).toHaveBeenCalledWith(
-            "id, chat_id, role, content, created_at"
-        );
 
         expect(mockEq).toHaveBeenCalledWith(
             "chat_id",
@@ -587,9 +740,29 @@ describe("getMessages", () => {
         expect(result).toEqual(fakeMessages);
     });
 
-    test("returns an empty array when the chat has no messages", async () => {
-        mockEq.mockReturnValueOnce({
-            order: mockOrder,
+    test("returns an empty array when the owned chat has no messages", async () => {
+        const fakeChat = {
+            id: 7,
+            title: "New Chat",
+            subject: "COMP",
+            created_at: "2026-09-22T12:00:00Z",
+            updated_at: "2026-09-22T12:00:00Z",
+        };
+
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            })
+            .mockReturnValueOnce({
+                order: mockOrder,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: fakeChat,
+            error: null,
         });
 
         mockOrder.mockResolvedValueOnce({
@@ -597,24 +770,80 @@ describe("getMessages", () => {
             error: null,
         });
 
-        const result = await getMessages(7);
+        const result = await getMessages(
+            "test-user-id",
+            7
+        );
 
         expect(result).toEqual([]);
     });
 
+    test("does not retrieve messages when the user does not own the chat", async () => {
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: null,
+            error: null,
+        });
+
+        const orderCallsBefore = mockOrder.mock.calls.length;
+
+        await expect(
+            getMessages(
+                "test-user-id",
+                7
+            )
+        ).rejects.toThrow("Chat not found");
+
+        expect(mockOrder.mock.calls.length).toBe(
+            orderCallsBefore
+        );
+    });
+
     test("throws an error when retrieving messages fails", async () => {
-        mockEq.mockReturnValueOnce({
-            order: mockOrder,
+        const fakeChat = {
+            id: 7,
+            title: "New Chat",
+            subject: "COMP",
+            created_at: "2026-09-22T12:00:00Z",
+            updated_at: "2026-09-22T12:00:00Z",
+        };
+
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            })
+            .mockReturnValueOnce({
+                order: mockOrder,
+            });
+
+        mockMaybeSingle.mockResolvedValueOnce({
+            data: fakeChat,
+            error: null,
         });
 
         mockOrder.mockResolvedValueOnce({
             data: null,
             error: {
-                message: "Database unavailable"
+                message: "Database unavailable",
             },
         });
 
-        await expect( getMessages(7)).rejects.toThrow(
+        await expect(
+            getMessages(
+                "test-user-id",
+                7
+            )
+        ).rejects.toThrow(
             "Failed to retrieve messages: Database unavailable"
         );
     });
@@ -644,12 +873,17 @@ describe("getChats", () => {
             error: null,
         });
 
-        const result = await getChats();
+        const result = await getChats("test-user-id");
 
         expect(mockFrom).toHaveBeenCalledWith("chats");
 
         expect(mockSelect).toHaveBeenCalledWith(
             "id, title, subject, created_at, updated_at"
+        );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "user_id",
+            "test-user-id"
         );
 
         expect(mockOrder).toHaveBeenCalledWith(
@@ -666,7 +900,7 @@ describe("getChats", () => {
             error: null,
         });
 
-        const result = await getChats();
+        const result = await getChats("test-user-id")
 
         expect(result).toEqual([]);
     });
@@ -680,7 +914,7 @@ describe("getChats", () => {
         });
 
         await expect(
-            getChats()
+            getChats("test-user-id")
         ).rejects.toThrow(
             "Failed to retrieve chats: Database unavailable"
         );
@@ -688,12 +922,19 @@ describe("getChats", () => {
 });
 
 describe("updateChatTimestamp", () => {
-    test("updates the chat timestamp", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: null,
-        });
+    test("updates the chat timestamp for the user", async () => {
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: null,
+            });
 
-        await updateChatTimestamp(7);
+        await updateChatTimestamp(
+            "test-user-id",
+            7
+        );
 
         expect(mockFrom).toHaveBeenCalledWith("chats");
 
@@ -705,28 +946,47 @@ describe("updateChatTimestamp", () => {
             "id",
             7
         );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "user_id",
+            "test-user-id"
+        );
     });
 
     test("throws an error when updating the timestamp fails", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: {
-                message: "Database unavailable",
-            },
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: {
+                    message: "Database unavailable",
+                },
+            });
 
-        await expect(updateChatTimestamp(7)).rejects.toThrow(
+        await expect(
+            updateChatTimestamp(
+                "test-user-id",
+                7
+            )
+        ).rejects.toThrow(
             "Failed to update chat timestamp: Database unavailable"
         );
     });
 });
 
 describe("updateChatTitle", () => {
-    test("updates the chat title", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: null,
-        });
+    test("updates the chat title for the user", async () => {
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: null,
+            });
 
         await updateChatTitle(
+            "test-user-id",
             7,
             "What is operant conditioning?"
         );
@@ -737,21 +997,42 @@ describe("updateChatTitle", () => {
             title: "What is operant conditioning?",
         });
 
-        expect(mockEq).toHaveBeenCalledWith("id", 7);
+        expect(mockEq).toHaveBeenCalledWith(
+            "id",
+            7
+        );
+
+        expect(mockEq).toHaveBeenCalledWith(
+            "user_id",
+            "test-user-id"
+        );
     });
 
     test("throws an error when updating the title fails", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: {
-                message: "Database unavailable",
-            },
-        });
-        await expect(updateChatTitle( 7, "What is operant conditioning?")).rejects.toThrow("Failed to update chat title: Database unavailable");
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: {
+                    message: "Database unavailable",
+                },
+            });
+
+        await expect(
+            updateChatTitle(
+                "test-user-id",
+                7,
+                "What is operant conditioning?"
+            )
+        ).rejects.toThrow(
+            "Failed to update chat title: Database unavailable"
+        );
     });
 });
 
 describe("getChat", () => {
-    test("returns a chat by ID", async () => {
+    test("returns a chat owned by the user", async () => {
         const fakeChat = {
             id: 7,
             title: "New Chat",
@@ -760,16 +1041,23 @@ describe("getChat", () => {
             updated_at: "2026-09-23T12:00:00Z",
         };
 
-        mockEq.mockReturnValueOnce({
-            maybeSingle: mockMaybeSingle,
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
 
         mockMaybeSingle.mockResolvedValueOnce({
             data: fakeChat,
             error: null,
         });
 
-        const result = await getChat(7);
+        const result = await getChat(
+            "test-user-id",
+            7
+        );
 
         expect(mockFrom).toHaveBeenCalledWith("chats");
 
@@ -778,28 +1066,44 @@ describe("getChat", () => {
         );
 
         expect(mockEq).toHaveBeenCalledWith("id", 7);
+        expect(mockEq).toHaveBeenCalledWith(
+            "user_id",
+            "test-user-id"
+        );
 
         expect(result).toEqual(fakeChat);
     });
 
-    test("returns null when the chat does not exist", async () => {
-        mockEq.mockReturnValueOnce({
-            maybeSingle: mockMaybeSingle,
-        });
+    test("returns null when the chat does not exist for the user", async () => {
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
 
         mockMaybeSingle.mockResolvedValueOnce({
             data: null,
             error: null,
         });
 
-        const result = await getChat(999);
+        const result = await getChat(
+            "test-user-id",
+            999
+        );
+
         expect(result).toBeNull();
     });
 
     test("throws an error when retrieving the chat fails", async () => {
-        mockEq.mockReturnValueOnce({
-            maybeSingle: mockMaybeSingle,
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockReturnValueOnce({
+                maybeSingle: mockMaybeSingle,
+            });
 
         mockMaybeSingle.mockResolvedValueOnce({
             data: null,
@@ -808,31 +1112,43 @@ describe("getChat", () => {
             },
         });
 
-        await expect(getChat(7)).rejects.toThrow("Failed to retrieve chat: Database unavailable"
+        await expect(
+            getChat("test-user-id", 7)
+        ).rejects.toThrow(
+            "Failed to retrieve chat: Database unavailable"
         );
     });
 });
 
 describe("deleteChat", () => {
     test("deletes a chat by ID", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: null,
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: null,
+            });
 
-        await deleteChat(7);
+        await deleteChat("test-user-id", 7);
         expect(mockFrom).toHaveBeenCalledWith("chats");
         expect(mockDelete).toHaveBeenCalled();
         expect(mockEq).toHaveBeenCalledWith( "id", 7);
+        expect(mockEq).toHaveBeenCalledWith("user_id", "test-user-id");
     });
 
     test("throws an error when deleting a chat fails", async () => {
-        mockEq.mockResolvedValueOnce({
-            error: {
-                message: "Database unavailable",
-            },
-        });
+        mockEq
+            .mockReturnValueOnce({
+                eq: mockEq,
+            })
+            .mockResolvedValueOnce({
+                error: {
+                    message: "Database unavailable",
+                },
+            });
 
-        await expect( deleteChat(7)).rejects.toThrow(
+        await expect(deleteChat("test-user-id", 7)).rejects.toThrow(
             "Failed to delete chat: Database unavailable"
         );
     });

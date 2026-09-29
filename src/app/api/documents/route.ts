@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDocumentsBySubject, deleteDocument } from "../../../lib/db";
+import { getCurrentUser } from "../../../lib/auth";
 
 export async function GET(request: NextRequest) {
     try {
+        const user = await getCurrentUser();
+
+        if (!user) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
         const subject = request.nextUrl.searchParams.get("subject");
 
         if (!subject) {
@@ -12,7 +22,7 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const documents = await getDocumentsBySubject(subject);
+        const documents = await getDocumentsBySubject(user.id, subject);
 
         return NextResponse.json({ documents });
     } catch (error) {
@@ -27,6 +37,15 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
     try {
+        const user = await getCurrentUser();
+
+        if (!user) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
         const documentId = request.nextUrl.searchParams.get("id");
 
         if (!documentId) {
@@ -45,7 +64,7 @@ export async function DELETE(request: NextRequest) {
             );
         }
 
-        await deleteDocument(id);
+        await deleteDocument(user.id, id);
 
         return NextResponse.json({
             message: "Document deleted successfully"

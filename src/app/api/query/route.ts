@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
 import { askQuestion } from "../../../lib/rag";
 import { createMessage, getChat, getMessages, updateChatTitle, updateChatTimestamp } from "../../../lib/db";
+import { getCurrentUser } from "../../../lib/auth";
 
 export async function POST(request: Request) {
     try {
+        const user = await getCurrentUser();
+
+        if (!user) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
         const body = await request.json();
         const question = body.question;
         const subject = body.subject;
@@ -29,7 +39,7 @@ export async function POST(request: Request) {
             );
         }
 
-        const chat = await getChat(chatId);
+        const chat = await getChat(user.id, chatId);
 
         if (!chat) {
             return NextResponse.json(
@@ -41,15 +51,14 @@ export async function POST(request: Request) {
         if (chat.title === "New Chat") {
             const title =
                 question.trim().length > 50 ? `${question.trim().slice(0, 50)}...` : question.trim();
-            await updateChatTitle(chatId, title);
+            await updateChatTitle(user.id, chatId, title);
         }
 
-        const conversationHistory = await getMessages(chatId);
-        await createMessage(chatId, "user", question.trim());
-        // @ts-ignore
-        const answer = await askQuestion(question.trim(), chat.subject, conversationHistory);
-        await createMessage( chatId, "assistant", answer);
-        await updateChatTimestamp(chatId);
+        const conversationHistory = await getMessages(user.id, chatId);
+        await createMessage(user.id, chatId, "user", question.trim());
+        const answer = await askQuestion(user.id, question.trim(), chat.subject, conversationHistory);
+        await createMessage(user.id, chatId, "assistant", answer);
+        await updateChatTimestamp(user.id, chatId);
 
         return NextResponse.json({ answer });
     } catch (error) {

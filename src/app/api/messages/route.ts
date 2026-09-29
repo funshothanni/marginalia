@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMessages } from "../../../lib/db";
+import { getChat, getMessages } from "../../../lib/db";
+import { getCurrentUser } from "../../../lib/auth";
 
 export async function GET(request: NextRequest) {
     try {
+        const user = await getCurrentUser();
+
+        if (!user) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
         const chatId = request.nextUrl.searchParams.get("chatId");
 
         if (!chatId) {
@@ -21,8 +30,15 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const messages = await getMessages(id);
+        const chat = await getChat(user.id, id);
+        if (!chat) {
+            return NextResponse.json(
+                { error: "Chat not found." },
+                { status: 404 }
+            );
+        }
 
+        const messages = await getMessages(user.id, id);
         return NextResponse.json({ messages });
     } catch (error) {
         console.error("GET MESSAGES ERROR:", error);

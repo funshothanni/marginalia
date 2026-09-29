@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { GET, POST, DELETE } from "../app/api/chats/route";
 import { createChat, getChats, deleteChat } from "../lib/db";
+import { getCurrentUser } from "../lib/auth";
 import { NextRequest } from "next/server";
 
 vi.mock("../lib/db", () => ({
@@ -9,17 +10,30 @@ vi.mock("../lib/db", () => ({
     deleteChat: vi.fn(),
 }));
 
+vi.mock("../lib/auth", () => ({
+    getCurrentUser: vi.fn(),
+}));
+
 const mockCreateChat = vi.mocked(createChat);
 const mockGetChats = vi.mocked(getChats);
 const mockDeleteChat = vi.mocked(deleteChat);
+const mockGetCurrentUser = vi.mocked(getCurrentUser);
 
 beforeEach(() => {
     vi.clearAllMocks();
+
+    mockGetCurrentUser.mockResolvedValue({
+        id: "test-user-id",
+        app_metadata: {},
+        user_metadata: {},
+        aud: "authenticated",
+        created_at: "2026-09-27T00:00:00Z",
+    });
 });
 
 
 describe("GET /api/chats", () => {
-    test("returns all chats", async () => {
+    test("returns the authenticated user's chats", async () => {
         const fakeChats = [
             {
                 id: 2,
@@ -46,7 +60,7 @@ describe("GET /api/chats", () => {
         expect(data).toEqual({
             chats: fakeChats,
         });
-        expect(mockGetChats).toHaveBeenCalledOnce();
+        expect(mockGetChats).toHaveBeenCalledWith("test-user-id");
     });
 
     test("returns 500 when retrieving chats fails", async () => {
@@ -61,6 +75,20 @@ describe("GET /api/chats", () => {
         expect(data).toEqual({
             error: "Failed to retrieve chats",
         });
+    });
+
+    test("returns 401 when user is not authenticated", async () => {
+        mockGetCurrentUser.mockResolvedValueOnce(null);
+
+        const response = await GET();
+        const data = await response.json();
+
+        expect(response.status).toBe(401);
+        expect(data).toEqual({
+            error: "Unauthorized",
+        });
+
+        expect(mockGetChats).not.toHaveBeenCalled();
     });
 });
 
@@ -94,11 +122,7 @@ describe("POST /api/chats", () => {
         const data = await response.json();
 
         expect(response.status).toBe(201);
-
-        expect(mockCreateChat).toHaveBeenCalledWith(
-            "COMP"
-        );
-
+        expect(mockCreateChat).toHaveBeenCalledWith("test-user-id", "COMP");
         expect(data).toEqual({
             chat: fakeChat,
         });
@@ -153,6 +177,33 @@ describe("POST /api/chats", () => {
             error: "Failed to create chat",
         });
     });
+
+    test("returns 401 when user is not authenticated", async () => {
+        mockGetCurrentUser.mockResolvedValueOnce(null);
+
+        const request = new NextRequest(
+            "http://localhost/api/chats",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    subject: "COMP",
+                }),
+            }
+        );
+
+        const response = await POST(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(401);
+        expect(data).toEqual({
+            error: "Unauthorized",
+        });
+
+        expect(mockCreateChat).not.toHaveBeenCalled();
+    });
 });
 
 describe("DELETE /api/chats", () => {
@@ -171,7 +222,7 @@ describe("DELETE /api/chats", () => {
 
         expect(response.status).toBe(200);
 
-        expect(mockDeleteChat).toHaveBeenCalledWith(7);
+        expect(mockDeleteChat).toHaveBeenCalledWith("test-user-id", 7);
 
         expect(data).toEqual({
             message: "Chat deleted successfully",
@@ -238,5 +289,26 @@ describe("DELETE /api/chats", () => {
         expect(data).toEqual({
             error: "Failed to delete chat",
         });
+    });
+
+    test("returns 401 when user is not authenticated", async () => {
+        mockGetCurrentUser.mockResolvedValueOnce(null);
+
+        const request = new NextRequest(
+            "http://localhost/api/chats?id=7",
+            {
+                method: "DELETE",
+            }
+        );
+
+        const response = await DELETE(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(401);
+        expect(data).toEqual({
+            error: "Unauthorized",
+        });
+
+        expect(mockDeleteChat).not.toHaveBeenCalled();
     });
 });

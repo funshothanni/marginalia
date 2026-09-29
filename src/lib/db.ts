@@ -2,7 +2,6 @@ import {createClient} from "@supabase/supabase-js";
 import {EmbeddedChunk} from "@/types/embeddedChunk";
 import {SearchResult} from "@/types/searchResult";
 import { Chat } from "../types/chat";
-// @ts-ignore
 import { Message } from "../types/message";
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -40,56 +39,71 @@ export async function insertChunks(chunks: EmbeddedChunk[], documentId: number) 
     return data;
 }
 
-export async function searchChunks(queryEmbedding: number[], subject: string, matchCount: number = 5): Promise<SearchResult[]> {
-    const {data, error} = await supabase.rpc("match_note_chunks", {
-        query_embedding: queryEmbedding,
-        match_subject: subject,
-        match_count: matchCount,
-    });
+export async function searchChunks(userId: string, queryEmbedding: number[], subject: string, matchCount: number = 5): Promise<SearchResult[]> {
+    const { data, error } = await supabase.rpc(
+        "match_note_chunks",
+        {
+            query_embedding: queryEmbedding,
+            match_subject: subject,
+            match_user_id: userId,
+            match_count: matchCount,
+        }
+    );
 
     if (error) {
-        throw new Error(`Failed to retrieve chunks: ${error.message}`);
+        throw new Error(
+            `Failed to retrieve chunks: ${error.message}`
+        );
     }
+
     return data;
 }
 
-export async function findDocument(subject: string, fileHash: string) {
-    const {data, error} = await supabase
+export async function findDocument(userId: string, subject: string, fileHash: string) {
+    const { data, error } = await supabase
         .from("documents")
         .select("id, file_name")
+        .eq("user_id", userId)
         .eq("subject", subject)
         .eq("file_hash", fileHash)
         .maybeSingle();
 
     if (error) {
-        throw new Error(`Failed to check document: ${error.message}`);
+        throw new Error(
+            `Failed to check document: ${error.message}`
+        );
     }
+
     return data;
 }
 
-export async function createDocument(fileName: string, fileHash: string, subject: string) {
-    const {data, error} = await supabase
+export async function createDocument(userId: string, fileName: string, fileHash: string, subject: string) {
+    const { data, error } = await supabase
         .from("documents")
         .insert({
+            user_id: userId,
             file_name: fileName,
             file_hash: fileHash,
-            subject: subject,
+            subject,
         })
         .select("id")
         .single();
 
     if (error) {
-        throw new Error(`Failed to create document: ${error.message}`);
+        throw new Error(
+            `Failed to create document: ${error.message}`
+        );
     }
 
     return data;
 }
 
-export async function deleteDocument(documentId: number) {
+export async function deleteDocument(userId: string, documentId: number) {
     const { error } = await supabase
         .from("documents")
         .delete()
-        .eq("id", documentId);
+        .eq("id", documentId)
+        .eq("user_id", userId);
 
     if (error) {
         throw new Error(
@@ -99,25 +113,31 @@ export async function deleteDocument(documentId: number) {
 }
 
 //gets all the subjects in the database
-export async function getSubjects(): Promise<string[]> {
+export async function getSubjects(userId: string): Promise<string[]> {
     const { data, error } = await supabase
-    .from("documents")
-    .select("subject");
+        .from("documents")
+        .select("subject")
+        .eq("user_id", userId);
 
-    if (error){
-        throw new Error(`Failed to retrieve subjects: ${error.message}`);
+    if (error) {
+        throw new Error(
+            `Failed to retrieve subjects: ${error.message}`
+        );
     }
 
-    return [...new Set(
-        data.map(row => row.subject)
-    )];
+    return [
+        ...new Set(
+            data.map(row => row.subject)
+        ),
+    ];
 }
 
 //gets the document under a specific subject selected
-export async function getDocumentsBySubject(subject: string) {
+export async function getDocumentsBySubject(userId: string, subject: string) {
     const { data, error } = await supabase
         .from("documents")
         .select("id, file_name, created_at")
+        .eq("user_id", userId)
         .eq("subject", subject)
         .order("created_at", { ascending: false });
 
@@ -126,13 +146,18 @@ export async function getDocumentsBySubject(subject: string) {
             `Failed to retrieve documents: ${error.message}`
         );
     }
+
     return data;
 }
 
-export async function createChat( subject: string, title: string = "New Chat"): Promise<Chat> {
+export async function createChat(userId: string, subject: string, title: string = "New Chat"): Promise<Chat> {
     const { data, error } = await supabase
         .from("chats")
-        .insert({ subject, title,})
+        .insert({
+            user_id: userId,
+            subject,
+            title,
+        })
         .select("id, title, subject, created_at, updated_at")
         .single();
 
@@ -145,10 +170,20 @@ export async function createChat( subject: string, title: string = "New Chat"): 
     return data;
 }
 
-export async function createMessage(chatId: number, role: "user" | "assistant", content: string): Promise<Message> {
+export async function createMessage(userId: string, chatId: number, role: "user" | "assistant", content: string): Promise<Message> {
+    const chat = await getChat(userId, chatId);
+
+    if (!chat) {
+        throw new Error("Chat not found");
+    }
+
     const { data, error } = await supabase
         .from("messages")
-        .insert({ chat_id: chatId, role, content})
+        .insert({
+            chat_id: chatId,
+            role,
+            content,
+        })
         .select("id, chat_id, role, content, created_at")
         .single();
 
@@ -161,7 +196,13 @@ export async function createMessage(chatId: number, role: "user" | "assistant", 
     return data;
 }
 
-export async function getMessages(chatId: number): Promise<Message[]> {
+export async function getMessages(userId: string, chatId: number): Promise<Message[]> {
+    const chat = await getChat(userId, chatId);
+
+    if (!chat) {
+        throw new Error("Chat not found");
+    }
+
     const { data, error } = await supabase
         .from("messages")
         .select("id, chat_id, role, content, created_at")
@@ -177,10 +218,11 @@ export async function getMessages(chatId: number): Promise<Message[]> {
     return data;
 }
 
-export async function getChats(): Promise<Chat[]> {
+export async function getChats(userId: string): Promise<Chat[]> {
     const { data, error } = await supabase
         .from("chats")
         .select("id, title, subject, created_at, updated_at")
+        .eq("user_id", userId)
         .order("updated_at", { ascending: false });
 
     if (error) {
@@ -192,11 +234,14 @@ export async function getChats(): Promise<Chat[]> {
     return data;
 }
 
-export async function updateChatTimestamp( chatId: number): Promise<void> {
+export async function updateChatTimestamp(userId: string, chatId: number): Promise<void> {
     const { error } = await supabase
         .from("chats")
-        .update({updated_at: new Date().toISOString(),})
-        .eq("id", chatId);
+        .update({
+            updated_at: new Date().toISOString(),
+        })
+        .eq("id", chatId)
+        .eq("user_id", userId);
 
     if (error) {
         throw new Error(
@@ -205,13 +250,14 @@ export async function updateChatTimestamp( chatId: number): Promise<void> {
     }
 }
 
-export async function updateChatTitle( chatId: number, title: string): Promise<void> {
+export async function updateChatTitle(userId: string, chatId: number, title: string): Promise<void> {
     const { error } = await supabase
         .from("chats")
         .update({
             title,
         })
-        .eq("id", chatId);
+        .eq("id", chatId)
+        .eq("user_id", userId);
 
     if (error) {
         throw new Error(
@@ -220,11 +266,12 @@ export async function updateChatTitle( chatId: number, title: string): Promise<v
     }
 }
 
-export async function getChat( chatId: number): Promise<Chat | null> {
+export async function getChat(userId: string, chatId: number): Promise<Chat | null> {
     const { data, error } = await supabase
         .from("chats")
         .select("id, title, subject, created_at, updated_at")
         .eq("id", chatId)
+        .eq("user_id", userId)
         .maybeSingle();
 
     if (error) {
@@ -236,11 +283,12 @@ export async function getChat( chatId: number): Promise<Chat | null> {
     return data;
 }
 
-export async function deleteChat( chatId: number): Promise<void> {
+export async function deleteChat(userId: string, chatId: number): Promise<void> {
     const { error } = await supabase
         .from("chats")
         .delete()
-        .eq("id", chatId);
+        .eq("id", chatId)
+        .eq("user_id", userId);
 
     if (error) {
         throw new Error(

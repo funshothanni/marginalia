@@ -1,14 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const {
-    mockExtractPdfText,
-    mockChunkDocument,
-    mockEmbedChunks,
-    mockInsertChunks,
-    mockFindDocument,
-    mockCreateDocument,
-    mockDeleteDocument,
-} = vi.hoisted(() => ({
+const {mockExtractPdfText, mockChunkDocument, mockEmbedChunks, mockInsertChunks, mockFindDocument, mockCreateDocument, mockDeleteDocument,} = vi.hoisted(() => ({
     mockExtractPdfText: vi.fn(),
     mockChunkDocument: vi.fn(),
     mockEmbedChunks: vi.fn(),
@@ -83,7 +75,9 @@ describe("ingestPdf", () => {
         const sourceDoc = "psychology.pdf";
         const metadata = { subject: "PSYC" };
 
-        const result = await ingestPdf(buffer, sourceDoc, metadata);
+        const result = await ingestPdf("test-user-id", buffer, sourceDoc, metadata);
+        expect(mockFindDocument).toHaveBeenCalledWith("test-user-id", "PSYC", expect.any(String));
+        expect(mockCreateDocument).toHaveBeenCalledWith("test-user-id", "psychology.pdf", expect.any(String), "PSYC");
         expect(result).toBe(2);
         expect(mockExtractPdfText).toHaveBeenCalledWith(buffer);
         expect(mockChunkDocument).toHaveBeenCalledWith("These are my psychology study notes.", sourceDoc, metadata);
@@ -121,8 +115,8 @@ describe("ingestPdf", () => {
         mockDeleteDocument.mockResolvedValue(undefined);
 
         const buffer = Buffer.from("fake pdf data");
-        await expect(ingestPdf(buffer, "psychology.pdf", { subject: "PSYC" })).rejects.toThrow("Database unavailable");
-        expect(mockDeleteDocument).toHaveBeenCalledWith(12);
+        await expect(ingestPdf("test-user-id", buffer, "psychology.pdf", { subject: "PSYC" })).rejects.toThrow("Database unavailable");
+        expect(mockDeleteDocument).toHaveBeenCalledWith("test-user-id", 12);
     });
 
     it("throws when the document has already been uploaded", async () => {
@@ -133,7 +127,7 @@ describe("ingestPdf", () => {
 
         const buffer = Buffer.from("fake pdf data");
 
-        await expect(ingestPdf(buffer, "psychology.pdf", { subject: "PSYC" })).rejects.toThrow("Document 'psychology.pdf' has already been uploaded");
+        await expect(ingestPdf("test-user-id", buffer, "psychology.pdf", { subject: "PSYC" })).rejects.toThrow("Document 'psychology.pdf' has already been uploaded");
 
         expect(mockCreateDocument).not.toHaveBeenCalled();
         expect(mockExtractPdfText).not.toHaveBeenCalled();
