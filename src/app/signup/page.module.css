@@ -101,3 +101,12 @@
     color: #2e7d32;
     font-size: 14px;
 }
+
+.confirmation {
+    padding: 24px 0;
+    text-align: center;
+}
+
+.confirmation .success {
+    margin: 0;
+}

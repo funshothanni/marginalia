@@ -1,6 +1,5 @@
 "use client";
-import { FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./page.module.css";
 
@@ -12,24 +11,6 @@ export default function SignupPage() {
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
-
-    const router = useRouter();
-
-    useEffect(() => {
-        async function checkSession() {
-            const supabase = createClient();
-
-            const {
-                data: { session },
-            } = await supabase.auth.getSession();
-
-            if (session) {
-                router.replace("/app");
-            }
-        }
-
-        checkSession();
-    }, [router]);
 
     async function handleSignup(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -73,62 +54,105 @@ export default function SignupPage() {
         <main className={styles.page}>
             <div className={styles.card}>
                 <div className={styles.header}>
-                    <h1>Create your account</h1>
-                    <p>Start studying with Marginalia.</p>
+                    <h1>create your account</h1>
+                    <p>start studying with marginalia.</p>
                 </div>
 
-                <form onSubmit={handleSignup} className={styles.form}>
-                    <div className={styles.field}>
-                        <label htmlFor="email">Email</label>
-                        <input
-                            id="email"
-                            type="email"
-                            placeholder="you@example.com"
-                            value={email}
-                            onChange={(event) => setEmail(event.target.value)}
-                            required
-                        />
-                    </div>
+                {message ? (
+                    <>
+                        <div className={styles.confirmation}>
+                            <p className={styles.success}>
+                                {message}
+                            </p>
+                        </div>
 
-                    <div className={styles.field}>
-                        <label htmlFor="password">Password</label>
-                        <input
-                            id="password"
-                            type="password"
-                            placeholder="Create a password"
-                            value={password}
-                            onChange={(event) => setPassword(event.target.value)}
-                            required
-                        />
-                    </div>
+                        <p className={styles.footer}>
+                            already have an account?{" "}
+                            <a href="/login">sign in</a>
+                        </p>
+                    </>
+                ) : (
+                    <>
+                        <form
+                            onSubmit={handleSignup}
+                            className={styles.form}
+                        >
+                            <div className={styles.field}>
+                                <label htmlFor="email">
+                                    email
+                                </label>
 
-                    <div className={styles.field}>
-                        <label htmlFor="confirmPassword">Confirm password</label>
-                        <input
-                            id="confirmPassword"
-                            type="password"
-                            placeholder="Enter your password again"
-                            value={confirmPassword}
-                            onChange={(event) => setConfirmPassword(event.target.value)}
-                            required
-                        />
-                    </div>
+                                <input
+                                    id="email"
+                                    type="email"
+                                    placeholder="marginalia@my.com"
+                                    value={email}
+                                    onChange={(event) =>
+                                        setEmail(event.target.value)
+                                    }
+                                    required
+                                />
+                            </div>
 
-                    {error && <p className={styles.error}>{error}</p>}
-                    {message && <p className={styles.success}>{message}</p>}
+                            <div className={styles.field}>
+                                <label htmlFor="password">
+                                    password
+                                </label>
 
-                    <button
-                        type="submit"
-                        className={styles.button}
-                        disabled={loading}
-                    >
-                        {loading ? "Creating account..." : "Create account"}
-                    </button>
-                </form>
+                                <input
+                                    id="password"
+                                    type="password"
+                                    placeholder="create a password"
+                                    value={password}
+                                    onChange={(event) =>
+                                        setPassword(event.target.value)
+                                    }
+                                    required
+                                />
+                            </div>
 
-                <p className={styles.footer}>
-                    Already have an account? <a href="/login">Sign in</a>
-                </p>
+                            <div className={styles.field}>
+                                <label htmlFor="confirmPassword">
+                                    confirm password
+                                </label>
+
+                                <input
+                                    id="confirmPassword"
+                                    type="password"
+                                    placeholder="enter your password again"
+                                    value={confirmPassword}
+                                    onChange={(event) =>
+                                        setConfirmPassword(
+                                            event.target.value
+                                        )
+                                    }
+                                    required
+                                />
+                            </div>
+
+                            {error && (
+                                <p className={styles.error}>
+                                    {error}
+                                </p>
+                            )}
+
+                            <button
+                                type="submit"
+                                className={styles.button}
+                                disabled={loading}
+                            >
+                                {loading
+                                    ? "creating account..."
+                                    : "create account"}
+                            </button>
+                        </form>
+
+                        <p className={styles.footer}>
+                            already have an account?{" "}
+                            <a href="/login">sign in</a>
+                        </p>
+                    </>
+                )}
             </div>
         </main>
     );

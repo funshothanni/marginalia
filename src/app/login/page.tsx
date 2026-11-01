@@ -1,27 +1,12 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./page.module.css";
 
 export default function LoginPage() {
     const router = useRouter();
-    useEffect(() => {
-        async function checkSession() {
-            const supabase = createClient();
-
-            const {
-                data: { session },
-            } = await supabase.auth.getSession();
-
-            if (session) {
-                router.replace("/app");
-            }
-        }
-
-        checkSession();
-    }, [router]);
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -56,55 +41,73 @@ export default function LoginPage() {
             <div className={styles.card}>
                 <div className={styles.header}>
                     <h1>marginalia</h1>
-                    <p>Sign in to continue studying.</p>
+                    <p>log in to continue studying.</p>
                 </div>
 
-                <form onSubmit={handleLogin} className={styles.form}>
+                <form
+                    onSubmit={handleLogin}
+                    className={styles.form}
+                >
                     <div className={styles.field}>
-                        <label htmlFor="email">Email</label>
+                        <label htmlFor="email">
+                            email
+                        </label>
 
                         <input
                             id="email"
                             type="email"
-                            placeholder="marginalia@my.com"
+                            placeholder="marginalia@study.my"
                             value={email}
-                            onChange={(event) => setEmail(event.target.value)}
+                            onChange={(event) =>
+                                setEmail(event.target.value)
+                            }
                             required
                         />
                     </div>
 
                     <div className={styles.field}>
-                        <label htmlFor="password">Password</label>
+                        <label htmlFor="password">
+                            password
+                        </label>
 
                         <input
                             id="password"
                             type="password"
-                            placeholder="Enter your password"
+                            placeholder="enter your password"
                             value={password}
-                            onChange={(event) => setPassword(event.target.value)}
+                            onChange={(event) =>
+                                setPassword(event.target.value)
+                            }
                             required
                         />
                     </div>
 
                     <div className={styles.forgotPassword}>
                         <a href="/forgot-password">
-                            Forgot password?
+                            forgot password?
                         </a>
                     </div>
 
-                    {error && <p className={styles.error}>{error}</p>}
+                    {error && (
+                        <p className={styles.error}>
+                            {error}
+                        </p>
+                    )}
 
                     <button
                         type="submit"
                         className={styles.button}
                         disabled={loading}
                     >
-                        {loading ? "Signing in..." : "Sign in"}
+                        {loading
+                            ? "logging in..."
+                            : "log in"}
                     </button>
                 </form>
 
                 <p className={styles.footer}>
-                    Don't have an account? <a href="/signup">Create one</a>
+                    don&#39;t have an account?{" "}
+                    <a href="/signup">sign up</a>
                 </p>
             </div>
         </main>
