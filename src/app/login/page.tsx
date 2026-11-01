@@ -1,0 +1,112 @@
+"use client";
+
+import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import styles from "./page.module.css";
+
+export default function LoginPage() {
+    const router = useRouter();
+    useEffect(() => {
+        async function checkSession() {
+            const supabase = createClient();
+
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
+
+            if (session) {
+                router.replace("/app");
+            }
+        }
+
+        checkSession();
+    }, [router]);
+
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    async function handleLogin(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+
+        setError("");
+        setLoading(true);
+
+        const supabase = createClient();
+
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+
+        if (error) {
+            setError(error.message);
+            setLoading(false);
+            return;
+        }
+
+        router.push("/app");
+        router.refresh();
+    }
+
+    return (
+        <main className={styles.page}>
+            <div className={styles.card}>
+                <div className={styles.header}>
+                    <h1>marginalia</h1>
+                    <p>Sign in to continue studying.</p>
+                </div>
+
+                <form onSubmit={handleLogin} className={styles.form}>
+                    <div className={styles.field}>
+                        <label htmlFor="email">Email</label>
+
+                        <input
+                            id="email"
+                            type="email"
+                            placeholder="marginalia@my.com"
+                            value={email}
+                            onChange={(event) => setEmail(event.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className={styles.field}>
+                        <label htmlFor="password">Password</label>
+
+                        <input
+                            id="password"
+                            type="password"
+                            placeholder="Enter your password"
+                            value={password}
+                            onChange={(event) => setPassword(event.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className={styles.forgotPassword}>
+                        <a href="/forgot-password">
+                            Forgot password?
+                        </a>
+                    </div>
+
+                    {error && <p className={styles.error}>{error}</p>}
+
+                    <button
+                        type="submit"
+                        className={styles.button}
+                        disabled={loading}
+                    >
+                        {loading ? "Signing in..." : "Sign in"}
+                    </button>
+                </form>
+
+                <p className={styles.footer}>
+                    Don't have an account? <a href="/signup">Create one</a>
+                </p>
+            </div>
+        </main>
+    );
+}

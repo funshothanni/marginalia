@@ -7,6 +7,7 @@ import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
+import LogoutButton from "@/components/LogoutButton";
 
 const inter = Inter({
     subsets: ["latin"]
@@ -764,6 +765,9 @@ export default function Home() {
                             ))}
                         </div>
                     )}
+                </div>
+                <div className={styles.accountSection}>
+                    <LogoutButton />
                 </div>
             </aside>
 
