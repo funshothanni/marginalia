@@ -46,10 +46,10 @@ export default function ForgotPasswordPage() {
         <main className={styles.page}>
             <div className={styles.card}>
                 <div className={styles.header}>
-                    <h1>Reset your password</h1>
+                    <h1>reset your password</h1>
 
                     <p>
-                        Enter your email and we'll send you
+                        enter your email and we&#39;ll send you
                         a password reset link.
                     </p>
                 </div>
@@ -60,13 +60,13 @@ export default function ForgotPasswordPage() {
                 >
                     <div className={styles.field}>
                         <label htmlFor="email">
-                            Email
+                            email
                         </label>
 
                         <input
                             id="email"
                             type="email"
-                            placeholder="you@example.com"
+                            placeholder="marginalia@study.my"
                             value={email}
                             onChange={(event) =>
                                 setEmail(
@@ -95,14 +95,14 @@ export default function ForgotPasswordPage() {
                         disabled={loading}
                     >
                         {loading
-                            ? "Sending..."
-                            : "Send reset link"}
+                            ? "sending..."
+                            : "send reset link"}
                     </button>
                 </form>
 
                 <p className={styles.footer}>
                     <a href="/login">
-                        Back to sign in
+                        sign in
                     </a>
                 </p>
             </div>
