@@ -70,8 +70,12 @@
 }
 
 .ragText {
-    /* Share the brand treatment between the wordmark and the greeting. */
     font-weight: 700;
+}
+
+.ragText,
+.brandLabel {
+    /* Use the same theme-aware gradient for the wordmark and sidebar labels. */
     background: linear-gradient(
             90deg,
             var(--brand-start-color),
@@ -791,6 +795,7 @@
 
 .newChatButton svg {
     flex-shrink: 0;
+    color: var(--brand-start-color);
 }
 
 /* Account / Logout section */

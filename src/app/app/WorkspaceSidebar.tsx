@@ -71,7 +71,7 @@ export default function WorkspaceSidebar({
             type="button"
             onClick={handleNewChat}
         >
-            <span>New Chat</span>
+            <span className={styles.brandLabel}>New Chat</span>
 
             <svg
                 width="16"
@@ -91,7 +91,7 @@ export default function WorkspaceSidebar({
 
         <div className={styles.subjectSection}>
             <label className={styles.label}>
-                Subject
+                <span className={styles.brandLabel}>Subject</span>
             </label>
 
             <select
@@ -216,7 +216,7 @@ export default function WorkspaceSidebar({
         )}
 
         <div className={styles.uploadSection}>
-            <p className={styles.label}>Upload Study Material</p>
+            <p className={styles.label}><span className={styles.brandLabel}>Upload Study Material</span></p>
 
             <div className={styles.filePicker}>
                 <input
@@ -262,7 +262,7 @@ export default function WorkspaceSidebar({
         <div className={styles.chatHistorySection}>
             <div className={styles.chatHistoryHeader}>
                 <p className={styles.label}>
-                    Chat History
+                    <span className={styles.brandLabel}>Chat History</span>
                 </p>
 
 
