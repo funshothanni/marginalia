@@ -359,6 +359,20 @@
     cursor: not-allowed;
 }
 
+.selectedPdf {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    border: 1px solid var(--control-border-color);
+    border-inline-start: 0.25rem solid var(--brand-start-color);
+    border-radius: 8px;
+    background: var(--panel-color);
+}
+
+.selectedPdf .fileName {
+    font-weight: 600;
+}
+
 .fileName,
 .uploadedFile {
     margin: 0;
