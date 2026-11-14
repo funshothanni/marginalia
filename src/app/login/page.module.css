@@ -12,6 +12,8 @@
     max-width: 420px;
     padding: 40px;
     background: white;
+    color: #171717;
+    color-scheme: light;
     border: 1px solid #e5e5e5;
     border-radius: 16px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
@@ -55,6 +57,10 @@
     border: 1px solid #d6d6d6;
     border-radius: 8px;
     outline: none;
+}
+
+.field input::placeholder {
+    color: #666;
 }
 
 .field input:focus {
