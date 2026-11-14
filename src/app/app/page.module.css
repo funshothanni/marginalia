@@ -819,6 +819,11 @@
 
 /* Account / Logout section */
 
+.accountSection :global(.logoutButton) {
+    border-color: var(--brand-start-color);
+    color: var(--brand-start-color);
+}
+
 .accountSection :global(.logoutButton):hover {
     background: var(--panel-color);
 }
