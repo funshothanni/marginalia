@@ -1,3 +1,4 @@
+import { COURSE_SUBJECT_FORMAT_HINT, parseCourseSubject } from "../../../lib/courseSubject";
 import { NextRequest, NextResponse } from "next/server";
 import { createChat, getChats, deleteChat } from "../../../lib/db";
 import { getCurrentUser } from "../../../lib/auth";
@@ -36,18 +37,18 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const subject = body.subject;
+        const courseSubject = parseCourseSubject(body.subject);
 
-        if (!subject) {
+        if (!courseSubject) {
             return NextResponse.json(
-                { error: "Subject is required" },
+                { error: body.subject ? COURSE_SUBJECT_FORMAT_HINT : "Subject is required" },
                 { status: 400 }
             );
         }
 
         const chat = await createChat(
             user.id,
-            subject
+            courseSubject.subject
         );
 
         return NextResponse.json(

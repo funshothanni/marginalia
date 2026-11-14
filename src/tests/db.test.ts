@@ -179,7 +179,7 @@ describe("insertChunks", () => {
 
     test("returns matching chunks from Supabase", async () => {
         const fakeEmbedding = [0.1, 0.2, 0.3];
-        const fakeSubject = "COMP";
+        const fakeSubject = "COMP 2140";
 
         const fakeResults = [
             {

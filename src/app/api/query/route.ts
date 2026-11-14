@@ -1,3 +1,4 @@
+import { COURSE_SUBJECT_FORMAT_HINT, parseCourseSubject } from "../../../lib/courseSubject";
 import { NextResponse } from "next/server";
 import { askQuestion } from "../../../lib/rag";
 import { createMessage, getChat, getMessages, updateChatTitle, updateChatTimestamp } from "../../../lib/db";
@@ -32,6 +33,10 @@ export async function POST(request: Request) {
             );
         }
 
+        if (!parseCourseSubject(subject)) {
+            return NextResponse.json({ error: COURSE_SUBJECT_FORMAT_HINT }, { status: 400 });
+        }
+
         if (!Number.isInteger(chatId)) {
             return NextResponse.json(
                 { error: "Valid chat ID is required." },
@@ -45,6 +50,14 @@ export async function POST(request: Request) {
             return NextResponse.json(
                 { error: "Chat not found." },
                 { status: 404 }
+            );
+        }
+
+        // Search uses the chat's saved course, so validate it before writing any messages.
+        if (!parseCourseSubject(chat.subject)) {
+            return NextResponse.json(
+                { error: "start a new chat with a numbered course to ask a question." },
+                { status: 400 }
             );
         }
 

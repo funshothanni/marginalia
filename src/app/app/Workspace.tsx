@@ -3,6 +3,8 @@
 import {Inter} from "next/font/google";
 import { useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
+import { COURSE_SUBJECT_FORMAT_HINT, parseCourseSubject } from "@/lib/courseSubject";
+import NewChatIcon from "./NewChatIcon";
 import ChatPanel from "./ChatPanel";
 import WorkspaceThemeToggle from "@/components/WorkspaceThemeToggle";
 import { useWorkspaceTheme } from "@/components/useWorkspaceTheme";
@@ -10,6 +12,7 @@ import WorkspaceSidebar from "./WorkspaceSidebar";
 import type { Chat, Message, StudyDocument } from "./workspaceTypes";
 
 const SELECTED_SUBJECT_STORAGE_KEY = "selectedSubject";
+const UPLOAD_CONFIRMATION_DURATION_MS = 5_000;
 
 const inter = Inter({
     subsets: ["latin"]
@@ -31,6 +34,8 @@ export default function Workspace({ displayName }: { displayName: string }) {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
 
+    const [isDeletingSubject, setIsDeletingSubject] = useState(false);
+
     const [subjects, setSubjects] = useState<string[]>([]);
     const [selectedSubject, setSelectedSubject] = useState("");
 
@@ -39,6 +44,19 @@ export default function Workspace({ displayName }: { displayName: string }) {
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        // Start the timer when the success message replaces the upload progress.
+        if (!uploadedFile || isUploading) {
+            return;
+        }
+
+        const timeoutId = window.setTimeout(() => {
+            setUploadedFile(null);
+        }, UPLOAD_CONFIRMATION_DURATION_MS);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [uploadedFile, isUploading]);
 
     useEffect(() => {
         async function loadSubjects() {
@@ -53,7 +71,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
                     );
                     return;
                 }
-                setSubjects(data.subjects);
+                setSubjects((previous) => [...new Set([...previous, ...data.subjects])]);
 
                 const savedSubject =
                     localStorage.getItem(SELECTED_SUBJECT_STORAGE_KEY);
@@ -135,6 +153,8 @@ export default function Workspace({ displayName }: { displayName: string }) {
     }
 
     async function handleSelectChat(chatId: number) {
+        if (isDeletingSubject) return;
+
         try {
             const response = await fetch(
                 `/api/messages?chatId=${chatId}`
@@ -181,9 +201,15 @@ export default function Workspace({ displayName }: { displayName: string }) {
         event: React.FormEvent<HTMLFormElement>
     ) {
         event.preventDefault();
+        if (isDeletingSubject) return;
 
         if (selectedSubject === "") {
             alert("please select a subject first.");
+            return;
+        }
+
+        if (!parseCourseSubject(selectedSubject)) {
+            alert(COURSE_SUBJECT_FORMAT_HINT);
             return;
         }
 
@@ -306,17 +332,14 @@ export default function Workspace({ displayName }: { displayName: string }) {
     }
 
     function handleAddSubject() {
-        const subject = newSubject
-            .trim()
-            .toUpperCase();
-
-        if (!/^[A-Z]{3}$/.test(subject) && !/^[A-Z]{4}$/.test(subject)) {
-            alert(
-                "subject must be 3 or 4 letters."
-            );
+        if (isDeletingSubject) return;
+        const courseSubject = parseCourseSubject(newSubject);
+        if (!courseSubject) {
+            alert(COURSE_SUBJECT_FORMAT_HINT);
             return;
         }
 
+        const { subject } = courseSubject;
         if (!subjects.includes(subject)) {
             setSubjects((previousSubjects) => [
                 ...previousSubjects,
@@ -324,13 +347,50 @@ export default function Workspace({ displayName }: { displayName: string }) {
             ]);
         }
 
-        selectSubject(subject);
+        changeSubject(subject);
 
         setNewSubject("");
         setShowAddSubject(false);
     }
 
+    async function handleDeleteSubject() {
+        if (!selectedSubject || isDeletingSubject || isLoading || isUploading) {
+            return;
+        }
+
+        const subject = selectedSubject;
+        if (!window.confirm(`delete ${subject}? this permanently deletes all related chats, messages, and uploaded PDFs.`)) {
+            return;
+        }
+
+        setIsDeletingSubject(true);
+        try {
+            const response = await fetch(`/api/subjects?subject=${encodeURIComponent(subject)}`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) {
+                throw new Error("subject deletion failed");
+            }
+
+            setSubjects((previous) => previous.filter((entry) => entry !== subject));
+            setChats((previous) => previous.filter((chat) => chat.subject !== subject));
+            setDocuments([]);
+            setFile(null);
+            setUploadedFile(null);
+            handleNewChat();
+            selectSubject("");
+        } catch (error) {
+            console.error(error);
+            alert("could not delete the subject. please try again.");
+        } finally {
+            setIsDeletingSubject(false);
+        }
+    }
+
     async function handleDeleteDocument(documentId: number) {
+        if (isDeletingSubject) return;
+
         const confirmed = window.confirm(
             "are you sure you want to delete this document?"
         );
@@ -378,12 +438,29 @@ export default function Workspace({ displayName }: { displayName: string }) {
         setMessages([]);
         setQuestion("");
     }
+    function changeSubject(subject: string) {
+        if (isDeletingSubject) return;
+
+        if (isLoading) {
+            return;
+        }
+
+        if (subject !== selectedSubject && selectedChatId !== null) {
+            // Retrieval follows the chat's saved subject, so a different course needs a new chat.
+            setSelectedChatId(null);
+            setMessages([]);
+        }
+        selectSubject(subject);
+    }
+
     function selectFile(file: File) {
         setFile(file);
         setUploadedFile(null);
     }
 
     async function handleFileUpload(fileToUpload: File | null = file) {
+        if (isDeletingSubject) return;
+
         if (isUploading) {
             return;
         }
@@ -466,15 +543,27 @@ export default function Workspace({ displayName }: { displayName: string }) {
             }`}
         >
             <header className={styles.header}>
-                <button
-                    className={styles.menuButton}
-                    type="button"
-                    onClick={() =>
-                        setSidebarOpen(true)
-                    }
-                >
-                    ☰
-                </button>
+                <div className={styles.headerActions}>
+                    <button
+                        className={styles.menuButton}
+                        type="button"
+                        aria-label="open sidebar"
+                        aria-expanded={sidebarOpen}
+                        onClick={() => setSidebarOpen(true)}
+                    >
+                        ☰
+                    </button>
+                    <button
+                        className={`${styles.menuButton} ${styles.newChatShortcut}`}
+                        type="button"
+                        aria-label="new chat"
+                        title="new chat"
+                        onClick={handleNewChat}
+                        disabled={isLoading || isDeletingSubject}
+                    >
+                        <NewChatIcon />
+                    </button>
+                </div>
 
                 <h1 className={styles.title}>
                     <span className={styles.ragText}>
@@ -494,15 +583,17 @@ export default function Workspace({ displayName }: { displayName: string }) {
             <WorkspaceSidebar
                 sidebarOpen={sidebarOpen}
                 setSidebarOpen={setSidebarOpen}
-                handleNewChat={handleNewChat}
                 subjects={subjects}
                 selectedSubject={selectedSubject}
-                selectSubject={selectSubject}
+                selectSubject={changeSubject}
                 showAddSubject={showAddSubject}
                 setShowAddSubject={setShowAddSubject}
                 newSubject={newSubject}
                 setNewSubject={setNewSubject}
                 handleAddSubject={handleAddSubject}
+                handleDeleteSubject={handleDeleteSubject}
+                isDeletingSubject={isDeletingSubject}
+                canDeleteSubject={Boolean(selectedSubject) && !isLoading && !isUploading}
                 documents={documents}
                 handleDeleteDocument={handleDeleteDocument}
                 file={file}
@@ -519,7 +610,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
                 displayName={displayName}
                 hasConversation={selectedChatId !== null || messages.length > 0}
                 subjects={subjects}
-                onSelectSubject={selectSubject}
+                onSelectSubject={changeSubject}
                 isUploading={isUploading}
                 uploadedFileName={uploadedFile?.name}
                 onUploadFile={handleFileUpload}

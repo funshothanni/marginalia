@@ -73,11 +73,11 @@ describe("ingestPdf", () => {
 
         const buffer = Buffer.from("fake pdf data");
         const sourceDoc = "psychology.pdf";
-        const metadata = { subject: "PSYC" };
+        const metadata = { subject: "PSYC 2000", course: "PSYC", code: "2000" };
 
         const result = await ingestPdf("test-user-id", buffer, sourceDoc, metadata);
-        expect(mockFindDocument).toHaveBeenCalledWith("test-user-id", "PSYC", expect.any(String));
-        expect(mockCreateDocument).toHaveBeenCalledWith("test-user-id", "psychology.pdf", expect.any(String), "PSYC");
+        expect(mockFindDocument).toHaveBeenCalledWith("test-user-id", "PSYC 2000", expect.any(String));
+        expect(mockCreateDocument).toHaveBeenCalledWith("test-user-id", "psychology.pdf", expect.any(String), "PSYC 2000");
         expect(result).toBe(2);
         expect(mockExtractPdfText).toHaveBeenCalledWith(buffer);
         expect(mockChunkDocument).toHaveBeenCalledWith("These are my psychology study notes.", sourceDoc, metadata);

@@ -38,7 +38,7 @@ describe("GET /api/chats", () => {
             {
                 id: 2,
                 title: "Binary Trees",
-                subject: "COMP",
+                subject: "COMP 2000",
                 created_at: "2026-09-22T12:00:00Z",
                 updated_at: "2026-09-22T14:00:00Z",
             },
@@ -98,7 +98,7 @@ describe("POST /api/chats", () => {
         const fakeChat = {
             id: 3,
             title: "New Chat",
-            subject: "COMP",
+            subject: "COMP 2000",
             created_at: "2026-09-22T15:00:00Z",
             updated_at: "2026-09-22T15:00:00Z",
         };
@@ -113,7 +113,7 @@ describe("POST /api/chats", () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    subject: "COMP",
+                    subject: "COMP 2000",
                 }),
             }
         );
@@ -122,7 +122,7 @@ describe("POST /api/chats", () => {
         const data = await response.json();
 
         expect(response.status).toBe(201);
-        expect(mockCreateChat).toHaveBeenCalledWith("test-user-id", "COMP");
+        expect(mockCreateChat).toHaveBeenCalledWith("test-user-id", "COMP 2000");
         expect(data).toEqual({
             chat: fakeChat,
         });
@@ -164,7 +164,7 @@ describe("POST /api/chats", () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    subject: "COMP",
+                    subject: "COMP 2000",
                 }),
             }
         );
@@ -189,7 +189,7 @@ describe("POST /api/chats", () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    subject: "COMP",
+                    subject: "COMP 2000",
                 }),
             }
         );

@@ -54,6 +54,9 @@ create table if not exists note_chunks (
     document_id integer not null references documents(id) on delete cascade
 );
 
+-- Let course-scoped searches look up chunks by their matching document IDs.
+create index if not exists note_chunks_document_id_idx on public.note_chunks (document_id);
+
 -- Row Level Security for note chunks
 alter table note_chunks enable row level security;
 
@@ -208,3 +211,22 @@ with check (
     )
 );
 
+-- Let course-scoped searches look up chunks by their matching document IDs.
+create index if not exists note_chunks_document_id_idx on public.note_chunks (document_id);
+
+-- Delete both parent sets in one transaction. Foreign keys cascade to messages and chunks.
+create or replace function public.delete_subject(target_subject text)
+returns void
+language sql
+security invoker
+set search_path = ''
+as $$
+    delete from public.chats
+    where user_id = (select auth.uid()) and subject = target_subject;
+
+    delete from public.documents
+    where user_id = (select auth.uid()) and subject = target_subject;
+$$;
+
+revoke execute on function public.delete_subject(text) from public, anon;
+grant execute on function public.delete_subject(text) to authenticated;

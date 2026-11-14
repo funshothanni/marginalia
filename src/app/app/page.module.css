@@ -13,7 +13,9 @@
     --gold-text-color: #171717;
     --brand-start-color: #80651f;
     --brand-end-color: #665511;
-    --success-color: var(--success-color);
+    --success-color: #166534;
+    --upload-button-background: #15803d;
+    --upload-button-hover-background: #166534;
 
     color-scheme: light;
 
@@ -90,12 +92,17 @@
     color: transparent;
 }
 
-.menuButton {
+.headerActions {
     position: fixed;
 
     top: 24px;
     left: 24px;
+    display: flex;
+    gap: 4px;
+    z-index: 1100;
+}
 
+.menuButton {
     width: 44px;
     height: 44px;
 
@@ -109,8 +116,6 @@
 
     cursor: pointer;
 
-    z-index: 1100;
-
     display: flex;
     align-items: center;
     justify-content: center;
@@ -118,7 +123,16 @@
     transition: background 0.2s ease;
 }
 
-.menuButton:hover {
+.newChatShortcut {
+    color: var(--brand-start-color);
+}
+
+.menuButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.menuButton:hover:not(:disabled) {
     background: var(--panel-color);
 }
 
@@ -241,16 +255,24 @@
     border: 1px solid var(--control-border-color);
     border-radius: 8px;
 
-    background: var(--panel-color);
-    color: var(--text-color);
-
     cursor: pointer;
 
     font-size: 14px;
 }
 
-.addSubjectButton:hover {
-    background: var(--border-color);
+.addSubjectButton.deleteSubjectButton {
+    border-color: transparent;
+    background: #b91c1c;
+    color: #fff;
+}
+
+.addSubjectButton.deleteSubjectButton:hover:not(:disabled) {
+    background: #991b1b;
+}
+
+.deleteSubjectButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .addSubjectBox {
@@ -403,16 +425,23 @@
     border: none;
     border-radius: 8px;
 
-    background: var(--accent-color);
-    color: var(--gold-text-color);
-
     cursor: pointer;
 
     font-weight: 600;
 }
 
-.uploadButton:hover {
+.addSubjectButton {
     background: var(--accent-color);
+    color: var(--gold-text-color);
+}
+
+.uploadButton {
+    background: var(--upload-button-background);
+    color: #fff;
+}
+
+.uploadButton:hover:not(:disabled) {
+    background: var(--upload-button-hover-background);
 }
 
 .uploadedFile {
@@ -503,6 +532,10 @@
 .currentSubject strong {
     color: var(--text-color);
     font-size: 1rem;
+}
+
+.currentSubject .subjectCode {
+    color: var(--brand-start-color);
 }
 
 .messages {
@@ -796,33 +829,6 @@
     margin: 0;
 }
 
-.newChatButton {
-    display: flex;
-    align-items: center;
-
-    gap: 5px;
-
-    width: fit-content;
-
-    padding: 0;
-    margin-bottom: 18px;
-
-    border: none;
-
-    background: transparent;
-
-    cursor: pointer;
-}
-
-.newChatButton:hover {
-    opacity: 0.75;
-}
-
-.newChatButton svg {
-    flex-shrink: 0;
-    color: var(--brand-start-color);
-}
-
 /* Account / Logout section */
 
 .accountSection :global(.logoutButton) {
@@ -851,7 +857,11 @@
 
 @media (max-width: 700px) {
     .header {
-        padding: 24px 55px 16px;
+        padding: 24px 55px 16px 104px;
+    }
+
+    .headerActions {
+        left: 8px;
     }
 
     .title {

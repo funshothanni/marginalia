@@ -1,3 +1,4 @@
+import { COURSE_SUBJECT_FORMAT_HINT, parseCourseSubject } from "../../../lib/courseSubject";
 import { NextResponse } from "next/server";
 import { ingestPdf } from "../../../lib/ingest";
 import { getCurrentUser } from "../../../lib/auth";
@@ -31,19 +32,20 @@ export async function POST(request: Request) {
             );
         }
 
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-
         const subject = formData.get("subject");
+        const metadata = parseCourseSubject(subject);
 
-        if (typeof subject !== "string" || subject.trim().length === 0) {
+        if (!metadata) {
             return NextResponse.json(
-                { error: "Please provide a subject." },
+                { error: typeof subject !== "string" || !subject.trim()
+                    ? "Please provide a subject."
+                    : COURSE_SUBJECT_FORMAT_HINT },
                 { status: 400 }
             );
         }
 
-        const chunkCount = await ingestPdf(user.id, buffer, file.name, { subject: subject.trim() });
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const chunkCount = await ingestPdf(user.id, buffer, file.name, metadata);
         return NextResponse.json(
             {
                 message: "PDF uploaded successfully.",

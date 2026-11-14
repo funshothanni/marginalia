@@ -1,11 +1,10 @@
 import LogoutButton from "@/components/LogoutButton";
-import { SUBJECT_CODE_LENGTH, type Chat, type StudyDocument } from "./workspaceTypes";
+import type { Chat, StudyDocument } from "./workspaceTypes";
 import styles from "./page.module.css";
 
 type Props = {
     sidebarOpen: boolean;
     setSidebarOpen: (open: boolean) => void;
-    handleNewChat: () => void;
     subjects: string[];
     selectedSubject: string;
     selectSubject: (subject: string) => void;
@@ -14,6 +13,9 @@ type Props = {
     newSubject: string;
     setNewSubject: (subject: string) => void;
     handleAddSubject: () => void;
+    handleDeleteSubject: () => Promise<void>;
+    isDeletingSubject: boolean;
+    canDeleteSubject: boolean;
     documents: StudyDocument[];
     handleDeleteDocument: (id: number) => Promise<void>;
     file: File | null;
@@ -29,7 +31,6 @@ type Props = {
 export default function WorkspaceSidebar({
     sidebarOpen,
     setSidebarOpen,
-    handleNewChat,
     subjects,
     selectedSubject,
     selectSubject,
@@ -38,6 +39,9 @@ export default function WorkspaceSidebar({
     newSubject,
     setNewSubject,
     handleAddSubject,
+    handleDeleteSubject,
+    canDeleteSubject,
+    isDeletingSubject,
     documents,
     handleDeleteDocument,
     file,
@@ -66,29 +70,6 @@ export default function WorkspaceSidebar({
         >
             ×
         </button>
-        <button
-            className={`${styles.label} ${styles.newChatButton}`}
-            type="button"
-            onClick={handleNewChat}
-        >
-            <span className={styles.brandLabel}>new chat</span>
-
-            <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-            >
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-            </svg>
-        </button>
-
         <div className={styles.subjectSection}>
             <label className={styles.label}>
                 <span className={styles.brandLabel}>subject</span>
@@ -125,8 +106,19 @@ export default function WorkspaceSidebar({
                     )
                 }
             >
-                add subject
+                add new subject
             </button>
+
+            {canDeleteSubject && (
+                <button
+                    className={`${styles.addSubjectButton} ${styles.deleteSubjectButton}`}
+                    type="button"
+                    onClick={handleDeleteSubject}
+                    disabled={isDeletingSubject}
+                >
+                    {isDeletingSubject ? "deleting subject…" : "delete subject"}
+                </button>
+            )}
 
             {showAddSubject && (
                 <div
@@ -139,8 +131,7 @@ export default function WorkspaceSidebar({
                             styles.subjectInput
                         }
                         type="text"
-                        placeholder="e.g. COMP"
-                        maxLength={SUBJECT_CODE_LENGTH}
+                        placeholder="e.g. COMP 2000"
                         value={newSubject}
                         onChange={(event) =>
                             setNewSubject(
@@ -236,7 +227,7 @@ export default function WorkspaceSidebar({
                     }}
                 />
                 <label htmlFor="pdfFile" className={styles.chooseFileButton}>
-                    {file ? "change PDF" : "choose PDF"}
+                    {file ? "change chosen PDF" : "choose PDF to upload"}
                 </label>
             </div>
 

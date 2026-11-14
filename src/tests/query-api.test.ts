@@ -33,7 +33,7 @@ describe("POST /api/query", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockGetCurrentUser.mockResolvedValue({id: "test-user-id", app_metadata: {}, user_metadata: {}, aud: "authenticated", created_at: "2026-09-27T00:00:00Z",});
-        mockGetChat.mockResolvedValue({id: 7, title: "New Chat", subject: "PSYC", created_at: "2026-09-23T12:00:00Z", updated_at: "2026-09-23T12:00:00Z",});
+        mockGetChat.mockResolvedValue({id: 7, title: "New Chat", subject: "PSYC 2000", created_at: "2026-09-23T12:00:00Z", updated_at: "2026-09-23T12:00:00Z",});
         mockGetMessages.mockResolvedValue([]);
     });
 
@@ -49,7 +49,7 @@ describe("POST /api/query", () => {
                 },
                 body: JSON.stringify({
                     question: "What is operant conditioning?",
-                    subject: "PSYC",
+                    subject: "PSYC 2000",
                     chatId: 7,
                 }),
             }
@@ -60,7 +60,7 @@ describe("POST /api/query", () => {
 
         expect(response.status).toBe(200);
         expect(body).toEqual({answer: "Operant conditioning is something in PSYC"});
-        expect(mockAskQuestion).toHaveBeenCalledWith("test-user-id", "What is operant conditioning?", "PSYC", []);expect(mockCreateMessage).toHaveBeenNthCalledWith(1, "test-user-id", 7, "user", "What is operant conditioning?");
+        expect(mockAskQuestion).toHaveBeenCalledWith("test-user-id", "What is operant conditioning?", "PSYC 2000", []);expect(mockCreateMessage).toHaveBeenNthCalledWith(1, "test-user-id", 7, "user", "What is operant conditioning?");
         expect(mockCreateMessage).toHaveBeenNthCalledWith(2, "test-user-id", 7, "assistant", "Operant conditioning is something in PSYC");
         expect(mockCreateMessage).toHaveBeenCalledTimes(2);
         expect(mockUpdateChatTimestamp).toHaveBeenCalledWith("test-user-id", 7);
@@ -101,7 +101,7 @@ describe("POST /api/query", () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    subject: "PSYC",
+                    subject: "PSYC 2000",
                 }),
             }
         );
@@ -124,7 +124,7 @@ describe("POST /api/query", () => {
                 },
                 body: JSON.stringify({
                     question: "   ",
-                    subject: "PSYC",
+                    subject: "PSYC 2000",
                 }),
             }
         );
@@ -147,7 +147,7 @@ describe("POST /api/query", () => {
                 },
                 body: JSON.stringify({
                     question: "What is operant conditioning?",
-                    subject: "PSYC",
+                    subject: "PSYC 2000",
                 }),
             }
         );
@@ -168,7 +168,7 @@ describe("POST /api/query", () => {
         mockGetChat.mockResolvedValueOnce({
             id: 7,
             title: "Operant Conditioning",
-            subject: "PSYC",
+            subject: "PSYC 2000",
             created_at: "2026-09-23T12:00:00Z",
             updated_at: "2026-09-23T12:00:00Z",
         });
@@ -186,7 +186,7 @@ describe("POST /api/query", () => {
                 },
                 body: JSON.stringify({
                     question: "Can you explain that again?",
-                    subject: "PSYC",
+                    subject: "PSYC 2000",
                     chatId: 7,
                 }),
             }
@@ -211,7 +211,7 @@ describe("POST /api/query", () => {
                 },
                 body: JSON.stringify({
                     question: "What is operant conditioning?",
-                    subject: "PSYC",
+                    subject: "PSYC 2000",
                     chatId: 999,
                 }),
             }
@@ -241,7 +241,7 @@ describe("POST /api/query", () => {
                 },
                 body: JSON.stringify({
                     question: "What is operant conditioning?",
-                    subject: "PSYC",
+                    subject: "PSYC 2000",
                     chatId: 7,
                 }),
             }
@@ -252,7 +252,7 @@ describe("POST /api/query", () => {
 
         expect(response.status).toBe(500);
         expect(body).toEqual({error: "Something went wrong"});
-        expect(mockAskQuestion).toHaveBeenCalledWith("test-user-id", "What is operant conditioning?", "PSYC", []);
+        expect(mockAskQuestion).toHaveBeenCalledWith("test-user-id", "What is operant conditioning?", "PSYC 2000", []);
         expect(mockCreateMessage).toHaveBeenCalledWith("test-user-id", 7, "user", "What is operant conditioning?");
         expect(mockCreateMessage).toHaveBeenCalledTimes(1);
     });
@@ -278,7 +278,7 @@ describe("POST /api/query", () => {
         mockGetChat.mockResolvedValueOnce({
             id: 7,
             title: "Classical Conditioning",
-            subject: "PSYC",
+            subject: "PSYC 2000",
             created_at: "2026-09-24T10:00:00Z",
             updated_at: "2026-09-24T10:00:05Z",
         });
@@ -294,7 +294,7 @@ describe("POST /api/query", () => {
                 method: "POST",
                 body: JSON.stringify({
                     question: "Can you give me an example of that?",
-                    subject: "PSYC",
+                    subject: "PSYC 2000",
                     chatId: 7,
                 }),
             }
@@ -303,7 +303,7 @@ describe("POST /api/query", () => {
         const response = await POST(request);
         expect(response.status).toBe(200);
         expect(mockGetMessages).toHaveBeenCalledWith("test-user-id", 7);
-        expect(mockAskQuestion).toHaveBeenCalledWith("test-user-id", "Can you give me an example of that?", "PSYC", previousMessages);
+        expect(mockAskQuestion).toHaveBeenCalledWith("test-user-id", "Can you give me an example of that?", "PSYC 2000", previousMessages);
     });
 
     it("returns 401 when user is not authenticated", async () => {
@@ -318,7 +318,7 @@ describe("POST /api/query", () => {
                 },
                 body: JSON.stringify({
                     question: "What is operant conditioning?",
-                    subject: "PSYC",
+                    subject: "PSYC 2000",
                     chatId: 7,
                 }),
             }

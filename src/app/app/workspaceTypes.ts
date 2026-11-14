@@ -15,5 +15,3 @@ export type Chat = {
     created_at: string;
     updated_at: string;
 };
-
-export const SUBJECT_CODE_LENGTH = 4;

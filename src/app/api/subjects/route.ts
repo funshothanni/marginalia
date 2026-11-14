@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSubjects } from "../../../lib/db";
+import { deleteSubject, getSubjects } from "../../../lib/db";
 import { getCurrentUser } from "../../../lib/auth";
 
 export async function GET() {
@@ -25,5 +25,25 @@ export async function GET() {
             { error: "Failed to retrieve subjects" },
             { status: 500 }
         );
+    }
+}
+
+export async function DELETE(request: Request) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+        }
+
+        const subject = new URL(request.url).searchParams.get("subject");
+        if (!subject?.trim()) {
+            return NextResponse.json({ error: "select a subject to delete." }, { status: 400 });
+        }
+
+        await deleteSubject(subject);
+        return new Response(null, { status: 204 });
+    } catch (error) {
+        console.error("Failed to delete subject:", error);
+        return NextResponse.json({ error: "could not delete the subject." }, { status: 500 });
     }
 }

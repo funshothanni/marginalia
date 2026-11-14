@@ -26,7 +26,7 @@ describe("POST /api/upload", () => {
         });
     });
 
-    it("uploads and ingests a valid PDF", async () => {
+    it("uploads a PDF with a normalized course and code", async () => {
         mockIngestPdf.mockResolvedValue(14);
         const file = new File(
             ["fake pdf contents"],
@@ -37,7 +37,7 @@ describe("POST /api/upload", () => {
         const formData = new FormData();
 
         formData.append("file", file);
-        formData.append("subject", "PSYC");
+        formData.append("subject", " psyc2000 ");
 
         const request = new Request(
             "http://localhost:3000/api/upload",
@@ -55,12 +55,12 @@ describe("POST /api/upload", () => {
             message: "PDF uploaded successfully.",
             count: 14,
         });
-        expect(mockIngestPdf).toHaveBeenCalledWith("test-user-id", expect.any(Buffer), "psychology.pdf", { subject: "PSYC" });
+        expect(mockIngestPdf).toHaveBeenCalledWith("test-user-id", expect.any(Buffer), "psychology.pdf", { subject: "PSYC 2000", course: "PSYC", code: "2000" });
     });
 
     it("returns 400 when no file is provided", async () => {
         const formData = new FormData();
-        formData.append("subject", "PSYC");
+        formData.append("subject", "PSYC 2000");
 
         const request = new Request(
             "http://localhost:3000/api/upload",
@@ -87,7 +87,7 @@ describe("POST /api/upload", () => {
 
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("subject", "PSYC");
+        formData.append("subject", "PSYC 2000");
 
         const request = new Request(
             "http://localhost:3000/api/upload",
@@ -144,7 +144,7 @@ describe("POST /api/upload", () => {
 
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("subject", "PSYC");
+        formData.append("subject", "PSYC 2000");
 
         const request = new Request(
             "http://localhost:3000/api/upload",
@@ -198,7 +198,7 @@ describe("POST /api/upload", () => {
         const file = new File(["fake pdf"], "psychology.pdf", { type: "application/pdf" });
 
         formData.append("file", file);
-        formData.append("subject", "PSYC");
+        formData.append("subject", "PSYC 2000");
 
         const request = new Request(
             "http://localhost/api/upload",
@@ -226,7 +226,7 @@ describe("POST /api/upload", () => {
 
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("subject", "PSYC");
+        formData.append("subject", "PSYC 2000");
 
         const request = new Request(
             "http://localhost:3000/api/upload",

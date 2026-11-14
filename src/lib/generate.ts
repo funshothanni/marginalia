@@ -13,6 +13,7 @@ type ConversationMessage = {
  *
  * @param question
  * @param context
+ * @param conversationHistory
  */
 export async function generateAnswer(
     question: string,

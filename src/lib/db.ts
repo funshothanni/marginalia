@@ -111,6 +111,15 @@ export async function deleteDocument(userId: string, documentId: number) {
     }
 }
 
+export async function deleteSubject(subject: string) {
+    const supabase = await createAuthenticatedClient();
+    const { error } = await supabase.rpc("delete_subject", { target_subject: subject });
+
+    if (error) {
+        throw new Error(`Failed to delete subject: ${error.message}`);
+    }
+}
+
 //gets all the subjects in the database
 export async function getSubjects(userId: string): Promise<string[]> {
     const supabase = await createAuthenticatedClient();
