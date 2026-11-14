@@ -3,35 +3,17 @@
 import {Inter} from "next/font/google";
 import { useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
-import ReactMarkdown from "react-markdown";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import "katex/dist/katex.min.css";
-import LogoutButton from "@/components/LogoutButton";
+import ChatPanel from "./ChatPanel";
+import WorkspaceSidebar from "./WorkspaceSidebar";
+import type { Chat, Message, StudyDocument } from "./workspaceTypes";
+
+const SELECTED_SUBJECT_STORAGE_KEY = "selectedSubject";
 
 const inter = Inter({
     subsets: ["latin"]
 });
 
 export default function Home() {
-    type Message = {
-        role: "user" | "assistant";
-        text: string;
-    };
-
-    type Document = {
-        id: number;
-        file_name: string;
-        created_at: string;
-    };
-    type Chat = {
-        id: number;
-        title: string;
-        subject: string;
-        created_at: string;
-        updated_at: string;
-    };
-
     const [question, setQuestion] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -39,10 +21,11 @@ export default function Home() {
     const [chats, setChats] = useState<Chat[]>([]);
     const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
 
-    const [documents, setDocuments] = useState<Document[]>([]);
+    const [documents, setDocuments] = useState<StudyDocument[]>([]);
 
     const [file, setFile] = useState<File | null>(null);
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
 
     const [subjects, setSubjects] = useState<string[]>([]);
     const [selectedSubject, setSelectedSubject] = useState("");
@@ -69,7 +52,7 @@ export default function Home() {
                 setSubjects(data.subjects);
 
                 const savedSubject =
-                    localStorage.getItem("selectedSubject");
+                    localStorage.getItem(SELECTED_SUBJECT_STORAGE_KEY);
 
                 if (
                     savedSubject &&
@@ -142,6 +125,11 @@ export default function Home() {
         loadDocuments();
     }, [selectedSubject]);
 
+    function selectSubject(subject: string) {
+        setSelectedSubject(subject);
+        localStorage.setItem(SELECTED_SUBJECT_STORAGE_KEY, subject);
+    }
+
     async function handleSelectChat(chatId: number) {
         try {
             const response = await fetch(
@@ -175,12 +163,7 @@ export default function Home() {
             const selectedChat = chats.find((chat) => chat.id === chatId);
 
             if (selectedChat) {
-                setSelectedSubject(selectedChat.subject);
-
-                localStorage.setItem(
-                    "selectedSubject",
-                    selectedChat.subject
-                );
+                selectSubject(selectedChat.subject);
             }
         } catch (error) {
             console.error(
@@ -339,12 +322,7 @@ export default function Home() {
             ]);
         }
 
-        setSelectedSubject(subject);
-
-        localStorage.setItem(
-            "selectedSubject",
-            subject
-        );
+        selectSubject(subject);
 
         setNewSubject("");
         setShowAddSubject(false);
@@ -399,24 +377,36 @@ export default function Home() {
         setMessages([]);
         setQuestion("");
     }
-    async function handleFileUpload() {
+    function selectFile(file: File) {
+        setFile(file);
+        setUploadedFile(null);
+    }
+
+    async function handleFileUpload(fileToUpload: File | null = file) {
+        if (isUploading) {
+            return;
+        }
+
         if (selectedSubject === "") {
             alert("Please select a subject first.");
             return;
         }
 
-        if (!file) {
+        if (!fileToUpload) {
             alert("Please choose a PDF first.");
             return;
         }
 
         const formData = new FormData();
 
-        formData.append("file", file);
+        formData.append("file", fileToUpload);
         formData.append(
             "subject",
             selectedSubject
         );
+
+        setUploadedFile(null);
+        setIsUploading(true);
 
         try {
             const response = await fetch(
@@ -429,8 +419,6 @@ export default function Home() {
 
             const data = await response.json();
 
-            console.log(data);
-
             if (!response.ok) {
                 console.error(data);
 
@@ -442,21 +430,22 @@ export default function Home() {
                 return;
             }
 
-            setUploadedFile(file);
+            setUploadedFile(fileToUpload);
+            setFile((pendingFile) => pendingFile === fileToUpload ? null : pendingFile);
 
-            const documentsResponse = await fetch(
-                `/api/documents?subject=${encodeURIComponent(selectedSubject)}`
-            );
+            try {
+                const documentsResponse = await fetch(
+                    `/api/documents?subject=${encodeURIComponent(selectedSubject)}`
+                );
 
-            const documentsData = await documentsResponse.json();
+                const documentsData = await documentsResponse.json();
 
-            if (documentsResponse.ok) {
-                setDocuments(documentsData.documents);
+                if (documentsResponse.ok) {
+                    setDocuments(documentsData.documents);
+                }
+            } catch (error) {
+                console.error("Failed to refresh uploaded documents:", error);
             }
-
-            alert(
-                "File uploaded successfully."
-            );
         } catch (error) {
             console.error(
                 "File upload failed:",
@@ -464,6 +453,8 @@ export default function Home() {
             );
 
             alert("File upload failed.");
+        } finally {
+            setIsUploading(false);
         }
     }
 
@@ -500,349 +491,42 @@ export default function Home() {
             </header>
 
 
-            <aside
-                className={`${styles.sidebar} ${
-                    sidebarOpen
-                        ? styles.sidebarOpen
-                        : ""
-                }`}
-            >
-                <button
-                    className={styles.closeSidebarButton}
-                    type="button"
-                    onClick={() =>
-                        setSidebarOpen(false)
-                    }
-                >
-                    ×
-                </button>
-                <button
-                    className={`${styles.label} ${styles.newChatButton}`}
-                    type="button"
-                    onClick={handleNewChat}
-                >
-                    <span>New Chat</span>
+            <WorkspaceSidebar
+                sidebarOpen={sidebarOpen}
+                setSidebarOpen={setSidebarOpen}
+                handleNewChat={handleNewChat}
+                subjects={subjects}
+                selectedSubject={selectedSubject}
+                selectSubject={selectSubject}
+                showAddSubject={showAddSubject}
+                setShowAddSubject={setShowAddSubject}
+                newSubject={newSubject}
+                setNewSubject={setNewSubject}
+                handleAddSubject={handleAddSubject}
+                documents={documents}
+                handleDeleteDocument={handleDeleteDocument}
+                file={file}
+                setFile={selectFile}
+                handleFileUpload={() => handleFileUpload()}
+                uploadedFile={uploadedFile}
+                isUploading={isUploading}
+                chats={chats}
+                selectedChatId={selectedChatId}
+                handleSelectChat={handleSelectChat}
+            />
 
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                    >
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                    </svg>
-                </button>
-
-                <div className={styles.subjectSection}>
-                    <label className={styles.label}>
-                        Subject
-                    </label>
-
-                    <select
-                        className={styles.select}
-                        value={selectedSubject}
-                        onChange={(event) => {
-                            const subject =
-                                event.target.value;
-
-                            setSelectedSubject(
-                                subject
-                            );
-
-                            localStorage.setItem(
-                                "selectedSubject",
-                                subject
-                            );
-                        }}
-                    >
-                        <option value="">
-                            Select subject
-                        </option>
-
-                        {subjects.map((subject) => (
-                            <option
-                                key={subject}
-                                value={subject}
-                            >
-                                {subject}
-                            </option>
-                        ))}
-                    </select>
-
-                    <button
-                        className={
-                            styles.addSubjectButton
-                        }
-                        type="button"
-                        onClick={() =>
-                            setShowAddSubject(
-                                !showAddSubject
-                            )
-                        }
-                    >
-                        Add Subject
-                    </button>
-
-                    {showAddSubject && (
-                        <div
-                            className={
-                                styles.addSubjectBox
-                            }
-                        >
-                            <input
-                                className={
-                                    styles.subjectInput
-                                }
-                                type="text"
-                                placeholder="e.g. COMP"
-                                maxLength={4}
-                                value={newSubject}
-                                onChange={(event) =>
-                                    setNewSubject(
-                                        event.target.value
-                                            .toUpperCase()
-                                    )
-                                }
-                            />
-
-                            <button
-                                className={
-                                    styles.saveSubjectButton
-                                }
-                                type="button"
-                                onClick={
-                                    handleAddSubject
-                                }
-                            >
-                                Save Subject
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                {selectedSubject && (
-                    <div>
-                        <p className={styles.label}>
-                            Uploaded Documents
-                        </p>
-                        {documents.length === 0 ? (
-                            <p>No {selectedSubject} documents uploaded yet.</p>
-                        ) : (
-                            <ul>
-                                {documents.map((document) => (
-                                    <li
-                                        key={document.id}
-                                        className={styles.documentItem}
-                                    >
-    <span className={styles.documentName}>
-        {document.file_name}
-    </span>
-                                        <button
-                                            className={styles.deleteDocumentButton}
-                                            type="button"
-                                            onClick={() =>
-                                                handleDeleteDocument(document.id)
-                                            }
-                                            aria-label={`Delete ${document.file_name}`}
-                                            title="Delete document"
-                                        >
-                                            <svg
-                                                width="18"
-                                                height="18"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                aria-hidden="true"
-                                            >
-                                                <path d="M3 6h18"/>
-                                                <path d="M8 6V4h8v2"/>
-                                                <path d="M19 6l-1 14H6L5 6"/>
-                                                <path d="M10 11v5"/>
-                                                <path d="M14 11v5"/>
-                                            </svg>
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-                )}
-
-                <div className={styles.uploadSection}>
-                    <label className={styles.label}>
-                        Upload Study Material
-                    </label>
-
-                    <div className={styles.filePicker}>
-                        <label
-                            htmlFor="pdfFile"
-                            className={
-                                styles.chooseFileButton
-                            }
-                        >
-                            Choose File
-                        </label>
-
-                        <span
-                            className={
-                                styles.fileName
-                            }
-                        >
-                            {file
-                                ? file.name
-                                : "No file selected"}
-                        </span>
-
-                        <input
-                            id="pdfFile"
-                            className={
-                                styles.hiddenFileInput
-                            }
-                            type="file"
-                            accept=".pdf"
-                            onChange={(event) => {
-                                if (
-                                    event.target.files &&
-                                    event.target.files.length > 0
-                                ) {
-                                    setFile(
-                                        event.target.files[0]
-                                    );
-                                }
-                            }}
-                        />
-                    </div>
-
-                    <button
-                        className={
-                            styles.uploadButton
-                        }
-                        type="button"
-                        onClick={
-                            handleFileUpload
-                        }
-                    >
-                        Upload File
-                    </button>
-
-                    {uploadedFile && (
-                        <p
-                            className={
-                                styles.uploadedFile
-                            }
-                        >
-                            Uploaded:{" "}
-                            {uploadedFile.name}
-                        </p>
-                    )}
-                </div>
-                <div className={styles.chatHistorySection}>
-                    <div className={styles.chatHistoryHeader}>
-                        <p className={styles.label}>
-                            Chat History
-                        </p>
-
-
-                    </div>
-                    {chats.length === 0 ? (
-                        <p className={styles.noChats}>
-                            No previous chats yet.
-                        </p>
-                    ) : (
-                        <div className={styles.chatHistoryList}>
-                            {chats.map((chat) => (
-                                <button
-                                    key={chat.id}
-                                    type="button"
-                                    className={`${styles.chatHistoryItem} ${
-                                        selectedChatId === chat.id
-                                            ? styles.activeChat
-                                            : ""
-                                    }`}
-                                    onClick={() => handleSelectChat(chat.id)}
-                                >
-        <span className={styles.chatHistorySubject}>
-            {chat.title}
-        </span>
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-                <div className={styles.accountSection}>
-                    <LogoutButton />
-                </div>
-            </aside>
-
-            <section className={styles.chatArea}>
-                <div className={styles.chat}>
-                    <div className={styles.messages}>
-                        {messages.map((message, index) => (
-                            <div
-                                key={index}
-                                className={
-                                    message.role === "user"
-                                        ? styles.userMessage
-                                        : styles.assistantMessage
-                                }
-                            >
-                                {message.role === "assistant" ? (
-                                    <ReactMarkdown
-                                        remarkPlugins={[remarkMath]}
-                                        rehypePlugins={[rehypeKatex]}
-                                    >
-                                        {message.text}
-                                    </ReactMarkdown>
-                                ) : (
-                                    message.text
-                                )}
-                            </div>
-                        ))}
-
-                        {isLoading && (
-                            <div className={styles.typingIndicator}>
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </div>
-                        )}
-
-                        <div ref={messagesEndRef} />
-                    </div>
-                    <form
-                        className={styles.form}
-                        onSubmit={handleSubmit}
-                    >
-                        <input
-                            className={styles.input}
-                            type="text"
-                            placeholder="Ask a question..."
-                            value={question}
-                            onChange={(event) =>
-                                setQuestion(
-                                    event.target.value
-                                )
-                            }
-                        />
-
-                        <button
-                            className={styles.button}
-                            type="submit"
-                        >
-                            Send
-                        </button>
-                    </form>
-                </div>
-            </section>
+            <ChatPanel
+                isUploading={isUploading}
+                uploadedFileName={uploadedFile?.name}
+                onUploadFile={handleFileUpload}
+                selectedSubject={selectedSubject}
+                messages={messages}
+                isLoading={isLoading}
+                messagesEndRef={messagesEndRef}
+                handleSubmit={handleSubmit}
+                question={question}
+                setQuestion={setQuestion}
+            />
         </main>
     );
 }

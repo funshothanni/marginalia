@@ -8,6 +8,14 @@
 }
 
 .card {
+    --muted-text: #666;
+    --strong-text: #111;
+    --button-background: #C7AF85;
+    --button-hover-background: #B99F73;
+    --small-text-size: 0.875rem;
+    --control-text-size: 1rem;
+    --control-radius: 8px;
+
     width: 100%;
     max-width: 420px;
     padding: 40px;
@@ -30,7 +38,7 @@
 
 .header p {
     margin: 0;
-    color: #666;
+    color: var(--muted-text);
 }
 
 .form {
@@ -46,43 +54,43 @@
 }
 
 .field label {
-    font-size: 14px;
+    font-size: var(--small-text-size);
     font-weight: 600;
 }
 
 .field input {
     width: 100%;
     padding: 12px 14px;
-    font-size: 16px;
+    font-size: var(--control-text-size);
     border: 1px solid #d6d6d6;
-    border-radius: 8px;
+    border-radius: var(--control-radius);
     outline: none;
 }
 
 .field input::placeholder {
-    color: #666;
+    color: var(--muted-text);
 }
 
 .field input:focus {
-    border-color: #111;
+    border-color: var(--strong-text);
 }
 
 .button {
     width: 100%;
     padding: 14px;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--control-radius);
 
-    background: #C7AF85;
-    color: #111;
+    background: var(--button-background);
+    color: var(--strong-text);
 
-    font-size: 16px;
+    font-size: var(--control-text-size);
     font-weight: 600;
     cursor: pointer;
 }
 
 .button:hover {
-    background: #B99F73;
+    background: var(--button-hover-background);
 }
 
 .button:disabled {
@@ -93,18 +101,18 @@
 .error {
     margin: 0;
     color: #c62828;
-    font-size: 14px;
+    font-size: var(--small-text-size);
 }
 
 .footer {
     margin-top: 24px;
     text-align: center;
-    color: #666;
-    font-size: 14px;
+    color: var(--muted-text);
+    font-size: var(--small-text-size);
 }
 
 .footer a {
-    color: #111;
+    color: var(--strong-text);
     font-weight: 600;
     text-decoration: none;
 }
@@ -112,15 +120,15 @@
 .forgotPassword {
     margin-top: -10px;
     text-align: right;
-    font-size: 14px;
+    font-size: var(--small-text-size);
 }
 
 .forgotPassword a {
-    color: #666;
+    color: var(--muted-text);
     text-decoration: none;
 }
 
 .forgotPassword a:hover {
-    color: #111;
+    color: var(--strong-text);
     text-decoration: underline;
 }

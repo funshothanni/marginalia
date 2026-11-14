@@ -1,11 +1,23 @@
 .container {
+    --accent-color: #afa65b;
+    --chat-action-background: #e2b65e;
+    --chat-action-hover-background: #f0c779;
+    --muted-text-color: #555550;
+    --panel-color: #f6f6f3;
+    --border-color: #deded8;
+    --control-border-color: #85857e;
+    --surface-color: #fff;
+    --text-color: #171717;
+
+    color-scheme: light;
+
     width: 100%;
     height: 100vh;
 
     box-sizing: border-box;
 
-    background: #000;
-    color: white;
+    background: var(--surface-color);
+    color: var(--text-color);
 
     display: flex;
     flex-direction: column;
@@ -37,8 +49,8 @@
 .ragText {
     background: linear-gradient(
             90deg,
-            #afa65b,
-            #8a7e19
+            #80651f,
+            #665511
     );
 
     background-clip: text;
@@ -52,7 +64,7 @@
 
     font-size: 15px;
 
-    color: #a1a1aa;
+    color: var(--muted-text-color);
 }
 
 .menuButton {
@@ -68,7 +80,7 @@
     border-radius: 8px;
 
     background: transparent;
-    color: white;
+    color: var(--text-color);
 
     font-size: 26px;
 
@@ -84,7 +96,7 @@
 }
 
 .menuButton:hover {
-    background: #18181b;
+    background: var(--panel-color);
 }
 
 .sidebar {
@@ -100,9 +112,9 @@
 
     padding: 80px 24px 30px;
 
-    background: #111113;
+    background: var(--surface-color);
 
-    border-right: 1px solid #27272a;
+    border-right: 1px solid var(--border-color);
 
     z-index: 1200;
 
@@ -133,7 +145,7 @@
     border-radius: 8px;
 
     background: transparent;
-    color: white;
+    color: var(--text-color);
 
     font-size: 30px;
 
@@ -145,7 +157,7 @@
 }
 
 .closeSidebarButton:hover {
-    background: #27272a;
+    background: var(--border-color);
 }
 
 .overlay {
@@ -173,7 +185,7 @@
     font-size: 14px;
     font-weight: 600;
 
-    color: #d4d4d8;
+    color: var(--muted-text-color);
 }
 
 .select {
@@ -183,11 +195,11 @@
 
     padding: 12px;
 
-    border: 1px solid #3f3f46;
+    border: 1px solid var(--control-border-color);
     border-radius: 8px;
 
-    background: #18181b;
-    color: white;
+    background: var(--panel-color);
+    color: var(--text-color);
 
     font-size: 14px;
 
@@ -195,7 +207,7 @@
 }
 
 .select:focus {
-    border-color: #afa65b;
+    border-color: var(--accent-color);
 }
 
 .addSubjectButton {
@@ -203,11 +215,11 @@
 
     padding: 12px;
 
-    border: 1px solid #3f3f46;
+    border: 1px solid var(--control-border-color);
     border-radius: 8px;
 
-    background: #18181b;
-    color: white;
+    background: var(--panel-color);
+    color: var(--text-color);
 
     cursor: pointer;
 
@@ -215,7 +227,7 @@
 }
 
 .addSubjectButton:hover {
-    background: #27272a;
+    background: var(--border-color);
 }
 
 .addSubjectBox {
@@ -232,17 +244,17 @@
 
     padding: 12px;
 
-    border: 1px solid #3f3f46;
+    border: 1px solid var(--control-border-color);
     border-radius: 8px;
 
-    background: #18181b;
-    color: white;
+    background: var(--panel-color);
+    color: var(--text-color);
 
     outline: none;
 }
 
 .subjectInput:focus {
-    border-color: #afa65b;
+    border-color: var(--accent-color);
 }
 
 .saveSubjectButton {
@@ -253,8 +265,8 @@
     border: none;
     border-radius: 8px;
 
-    background: #afa65b;
-    color: white;
+    background: var(--accent-color);
+    color: var(--text-color);
 
     cursor: pointer;
 
@@ -262,7 +274,7 @@
 }
 
 .saveSubjectButton:hover {
-    background: #afa65b;
+    background: var(--accent-color);
 }
 
 .uploadSection {
@@ -275,6 +287,7 @@
 }
 
 .filePicker {
+    position: relative;
     width: 100%;
 
     display: flex;
@@ -292,11 +305,11 @@
 
     text-align: center;
 
-    border: 1px solid #3f3f46;
+    border: 1px solid var(--control-border-color);
     border-radius: 8px;
 
-    background: #18181b;
-    color: white;
+    background: var(--panel-color);
+    color: var(--text-color);
 
     cursor: pointer;
 
@@ -304,21 +317,36 @@
 }
 
 .chooseFileButton:hover {
-    background: #27272a;
+    background: var(--border-color);
 }
 
 .hiddenFileInput {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.hiddenFileInput:focus-visible + .chooseFileButton {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+.hiddenFileInput:disabled + .chooseFileButton,
+.uploadButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.fileName,
+.uploadedFile {
+    margin: 0;
+    font-size: 1rem;
+    overflow-wrap: anywhere;
 }
 
 .fileName {
-    font-size: 12px;
-
-    color: #a1a1aa;
-
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: var(--text-color);
 }
 
 .uploadButton {
@@ -329,8 +357,8 @@
     border: none;
     border-radius: 8px;
 
-    background: #afa65b;
-    color: white;
+    background: var(--accent-color);
+    color: var(--text-color);
 
     cursor: pointer;
 
@@ -338,17 +366,11 @@
 }
 
 .uploadButton:hover {
-    background: #afa65b;
+    background: var(--accent-color);
 }
 
 .uploadedFile {
-    margin: 0;
-
-    font-size: 12px;
-
-    color: #22c55e;
-
-    overflow-wrap: anywhere;
+    color: #166534;
 }
 
 .chatArea {
@@ -374,10 +396,27 @@
 
     overflow: hidden;
 
-    background: #17171b;
+    background: var(--surface-color);
 
-    border: 1px solid #303038;
+    border: 1px solid var(--border-color);
     border-radius: 14px;
+}
+
+.currentSubject {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--muted-text-color);
+    font-size: 0.875rem;
+}
+
+.currentSubject strong {
+    color: var(--text-color);
+    font-size: 1rem;
 }
 
 .messages {
@@ -404,9 +443,9 @@
 
     border-radius: 14px 14px 4px 14px;
 
-    background: #afa65b;
+    background: var(--accent-color);
 
-    color: white;
+    color: var(--text-color);
 
     line-height: 1.5;
 
@@ -422,13 +461,24 @@
 
     border-radius: 14px 14px 14px 4px;
 
-    background: #27272a;
+    background: var(--border-color);
 
-    color: #f4f4f5;
+    color: var(--text-color);
 
     line-height: 1.5;
 
     overflow-wrap: anywhere;
+}
+
+.chatUploadStatus:not(:empty) {
+    padding: 0.5rem 1rem;
+    overflow-wrap: anywhere;
+}
+
+.attachButton {
+    flex-shrink: 0;
+    min-width: 2.75rem;
+    font-size: 1.5rem;
 }
 
 .form {
@@ -444,9 +494,9 @@
 
     gap: 10px;
 
-    border-top: 1px solid #303038;
+    border-top: 1px solid var(--border-color);
 
-    background: #17171b;
+    background: var(--surface-color);
 }
 
 .input {
@@ -456,11 +506,11 @@
 
     padding: 14px;
 
-    border: 1px solid #d4d4d8;
+    border: 1px solid var(--control-border-color);
     border-radius: 8px;
 
-    background: white;
-    color: black;
+    background: var(--surface-color);
+    color: var(--text-color);
 
     font-size: 14px;
 
@@ -468,25 +518,31 @@
 }
 
 .input:focus {
-    border-color: #afa65b;
+    border-color: var(--accent-color);
 }
 
-.button {
+.sendButton {
     padding: 0 22px;
+    font-weight: 600;
+}
 
+.attachButton,
+.sendButton {
     border: none;
     border-radius: 8px;
-
-    background: white;
-    color: black;
-
-    font-weight: 600;
-
+    background: var(--chat-action-background);
+    color: var(--text-color);
     cursor: pointer;
 }
 
-.button:hover {
-    background: #e4e4e7;
+.attachButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.attachButton:hover:not(:disabled),
+.sendButton:hover {
+    background: var(--chat-action-hover-background);
 }
 
 .typingIndicator {
@@ -498,7 +554,7 @@
 
     padding: 14px 18px;
 
-    background: #27272a;
+    background: var(--border-color);
 
     border-radius: 14px 14px 14px 4px;
 }
@@ -507,7 +563,7 @@
     width: 7px;
     height: 7px;
 
-    background: #a1a1aa;
+    background: var(--muted-text-color);
 
     border-radius: 50%;
 
@@ -612,7 +668,7 @@
     border-radius: 8px;
 
     background: transparent;
-    color: white;
+    color: var(--text-color);
 
     text-align: left;
 
@@ -621,8 +677,8 @@
     transition: background 0.2s ease;
 }
 
-.chatHistoryItem:hover {
-    background: rgba(255, 255, 255, 0.08);
+.chatHistoryItem:hover:not(.activeChat) {
+    background: var(--panel-color);
 }
 
 .chatHistorySubject {
@@ -640,7 +696,7 @@
 }
 
 .activeChat {
-    background: rgb(175, 166, 91);
+    background: var(--accent-color);
 }
 
 .chatHistoryHeader {
@@ -689,9 +745,9 @@
     margin-top: auto;
     padding-top: 16px;
 
-    background: #111113;
+    background: var(--surface-color);
 
-    border-top: 1px solid #27272a;
+    border-top: 1px solid var(--border-color);
 
     z-index: 10;
 }
@@ -731,7 +787,7 @@
         padding: 12px;
     }
 
-    .button {
+    .sendButton {
         padding: 0 16px;
     }
 }
