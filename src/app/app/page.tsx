@@ -170,6 +170,18 @@ export default function Home() {
 
             setSelectedChatId(chatId);
             setMessages(loadedMessages);
+
+            // Restore the subject associated with this chat
+            const selectedChat = chats.find((chat) => chat.id === chatId);
+
+            if (selectedChat) {
+                setSelectedSubject(selectedChat.subject);
+
+                localStorage.setItem(
+                    "selectedSubject",
+                    selectedChat.subject
+                );
+            }
         } catch (error) {
             console.error(
                 "Failed to load messages:",
