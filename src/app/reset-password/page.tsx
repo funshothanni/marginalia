@@ -60,8 +60,8 @@ export default function ResetPasswordPage() {
                     <h1>Choose a new password</h1>
 
                     <p>
-                        Enter a new password for your
-                        Marginalia account.
+                        enter a new password for your
+                        marginalia account.
                     </p>
                 </div>
 
@@ -71,7 +71,7 @@ export default function ResetPasswordPage() {
                 >
                     <div className={styles.field}>
                         <label htmlFor="password">
-                            New password
+                            new password
                         </label>
 
                         <input
@@ -90,13 +90,13 @@ export default function ResetPasswordPage() {
 
                     <div className={styles.field}>
                         <label htmlFor="confirmPassword">
-                            Confirm new password
+                            confirm new password
                         </label>
 
                         <input
                             id="confirmPassword"
                             type="password"
-                            placeholder="Enter your password again"
+                            placeholder="enter your password again"
                             value={confirmPassword}
                             onChange={(event) =>
                                 setConfirmPassword(
@@ -119,8 +119,8 @@ export default function ResetPasswordPage() {
                         disabled={loading}
                     >
                         {loading
-                            ? "Updating password..."
-                            : "Update password"}
+                            ? "updating password..."
+                            : "update password"}
                     </button>
                 </form>
             </div>

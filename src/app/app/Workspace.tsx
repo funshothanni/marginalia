@@ -524,7 +524,6 @@ export default function Workspace({ displayName }: { displayName: string }) {
                 hasConversation={selectedChatId !== null || messages.length > 0}
                 subjects={subjects}
                 onSelectSubject={selectSubject}
-                onOpenSidebar={() => setSidebarOpen(true)}
                 isUploading={isUploading}
                 uploadedFileName={uploadedFile?.name}
                 onUploadFile={handleFileUpload}

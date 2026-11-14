@@ -1,8 +1,8 @@
-# Marginalia
+# marginalia
 
-Marginalia is an AI-powered study assistant that answers questions using the course PDFs you upload. Organize your materials by subject, ask questions, and pick up past conversations from Chat History.
+marginalia is an AI-powered study assistant that answers questions using the course PDFs you upload. Organize your materials by subject, ask questions, and pick up past conversations from Chat History.
 
-## How to use Marginalia
+## How to use marginalia
 
 1. Open [marginalia.my](https://marginalia.my) and sign up or log in.
 2. Open the sidebar and select a subject, or use **Add Subject** to create one.
@@ -26,7 +26,7 @@ Marginalia is an AI-powered study assistant that answers questions using the cou
 
 ## Current Development
 
-Marginalia is under active development.
+marginalia is under active development.
 
 Current development focuses include:
 
@@ -39,6 +39,6 @@ Current development focuses include:
 
 ## Acknowledgements
 
-Marginalia is developed collaboratively with generative AI used as a development aid for brainstorming, debugging, learning, and implementation support.
+marginalia is developed collaboratively with generative AI used as a development aid for brainstorming, debugging, learning, and implementation support.
 
 Architecture decisions, code integration, testing, and project development are reviewed and carried out by the development team.

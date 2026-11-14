@@ -437,8 +437,7 @@
     font-size: 0.875rem;
 }
 
-.welcomeSubject .select,
-.welcomeSubject .addSubjectButton {
+.welcomeSubject .select {
     width: auto;
     max-width: 100%;
 }

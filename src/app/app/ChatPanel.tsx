@@ -11,7 +11,6 @@ type Props = {
     hasConversation: boolean;
     subjects: string[];
     onSelectSubject: (subject: string) => void;
-    onOpenSidebar: () => void;
     selectedSubject: string;
     isUploading: boolean;
     uploadedFileName?: string;
@@ -29,7 +28,6 @@ export default function ChatPanel({
     hasConversation,
     subjects,
     onSelectSubject,
-    onOpenSidebar,
     selectedSubject,
     isUploading,
     uploadedFileName,
@@ -149,30 +147,20 @@ export default function ChatPanel({
                 </form>
                 {!hasConversation && (
                     <div className={styles.welcomeSubject}>
-                        {subjects.length > 0 ? (
-                            <>
-                                <label htmlFor="welcome-subject">Subject</label>
-                                <select
-                                    id="welcome-subject"
-                                    className={styles.select}
-                                    value={selectedSubject}
-                                    onChange={(event) => onSelectSubject(event.target.value)}
-                                >
-                                    <option value="">Select a subject</option>
-                                    {subjects.map((subject) => (
-                                        <option key={subject} value={subject}>{subject}</option>
-                                    ))}
-                                </select>
-                            </>
-                        ) : (
-                            <button
-                                type="button"
-                                className={styles.addSubjectButton}
-                                onClick={onOpenSidebar}
-                            >
-                                Manage subjects
-                            </button>
-                        )}
+                        <select
+                            aria-label="Select subject"
+                            className={styles.select}
+                            value={selectedSubject}
+                            onChange={(event) => onSelectSubject(event.target.value)}
+                        >
+                            <option value="">Select subject</option>
+                            {subjects.length === 0 && (
+                                <option disabled>No subjects available</option>
+                            )}
+                            {subjects.map((subject) => (
+                                <option key={subject} value={subject}>{subject}</option>
+                            ))}
+                        </select>
                     </div>
                 )}
             </div>
