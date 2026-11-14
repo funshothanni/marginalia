@@ -312,7 +312,9 @@ describe("deleteDocument", () => {
 });
 
 describe("getSubjects", () => {
-    test("returns unique subjects for the user", async () => {
+    test("combines document and chat subjects without duplicates", async () => {
+        mockEq.mockClear();
+        mockFrom.mockClear();
         mockEq.mockResolvedValueOnce({
             data: [
                 { subject: "PSYC" },
@@ -322,14 +324,21 @@ describe("getSubjects", () => {
             error: null,
         });
 
+        mockEq.mockResolvedValueOnce({
+            data: [{ subject: "COMP" }, { subject: "COMP 3380" }],
+            error: null,
+        });
+
         const result = await getSubjects(
             "test-user-id"
         );
 
         expect(mockFrom).toHaveBeenCalledWith("documents");
+        expect(mockFrom).toHaveBeenCalledWith("chats");
+        expect(mockEq.mock.calls).toEqual([["user_id", "test-user-id"], ["user_id", "test-user-id"]]);
         expect(mockSelect).toHaveBeenCalledWith("subject");
         expect(mockEq).toHaveBeenCalledWith("user_id", "test-user-id");
-        expect(result).toEqual(["PSYC", "COMP",]);
+        expect(result).toEqual(["PSYC", "COMP", "COMP 3380"]);
     });
 
     test("throws an error when retrieving subjects fails", async () => {
@@ -337,6 +346,8 @@ describe("getSubjects", () => {
             data: null,
             error: { message: "Database unavailable" },
         });
+
+        mockEq.mockResolvedValueOnce({ data: [], error: null });
 
         await expect(getSubjects("test-user-id")).rejects.toThrow("Failed to retrieve subjects: Database unavailable");
     });

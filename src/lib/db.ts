@@ -120,25 +120,20 @@ export async function deleteSubject(subject: string) {
     }
 }
 
-//gets all the subjects in the database
+// A saved chat keeps its subject available after the last PDF is deleted.
 export async function getSubjects(userId: string): Promise<string[]> {
     const supabase = await createAuthenticatedClient();
-    const { data, error } = await supabase
-        .from("documents")
-        .select("subject")
-        .eq("user_id", userId);
+    const [documents, chats] = await Promise.all([
+        supabase.from("documents").select("subject").eq("user_id", userId),
+        supabase.from("chats").select("subject").eq("user_id", userId),
+    ]);
 
+    const error = documents.error ?? chats.error;
     if (error) {
-        throw new Error(
-            `Failed to retrieve subjects: ${error.message}`
-        );
+        throw new Error(`Failed to retrieve subjects: ${error.message}`);
     }
 
-    return [
-        ...new Set(
-            data.map(row => row.subject)
-        ),
-    ];
+    return [...new Set([...(documents.data ?? []), ...(chats.data ?? [])].map((row) => row.subject))];
 }
 
 //gets the document under a specific subject selected
