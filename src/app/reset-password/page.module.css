@@ -1,18 +1,10 @@
-.page {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    background: #f7f7f5;
-}
-
 .card {
     width: 100%;
     max-width: 420px;
     padding: 40px;
-    background: white;
-    border: 1px solid #e5e5e5;
+    background: var(--surface-color);
+    color: var(--text-color);
+    border: 1px solid var(--card-border);
     border-radius: 16px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
 }
@@ -28,7 +20,7 @@
 
 .header p {
     margin: 0;
-    color: #666;
+    color: var(--muted-text);
 }
 
 .form {
@@ -52,13 +44,17 @@
     width: 100%;
     padding: 12px 14px;
     font-size: 16px;
-    border: 1px solid #d6d6d6;
+    border: 1px solid var(--field-border);
     border-radius: 8px;
     outline: none;
 }
 
+.field input::placeholder {
+    color: var(--muted-text);
+}
+
 .field input:focus {
-    border-color: #111;
+    border-color: var(--strong-text);
 }
 
 .button {
@@ -68,8 +64,8 @@
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    background: #111;
-    color: white;
+    background: var(--strong-text);
+    color: var(--surface-color);
 }
 
 .button:disabled {
@@ -79,25 +75,25 @@
 
 .error {
     margin: 0;
-    color: #c62828;
+    color: var(--error-color);
     font-size: 14px;
 }
 
 .footer {
     margin-top: 24px;
     text-align: center;
-    color: #666;
+    color: var(--muted-text);
     font-size: 14px;
 }
 
 .footer a {
-    color: #111;
+    color: var(--strong-text);
     font-weight: 600;
     text-decoration: none;
 }
 
 .success {
     margin: 0;
-    color: #2e7d32;
+    color: var(--success-color);
     font-size: 14px;
 }

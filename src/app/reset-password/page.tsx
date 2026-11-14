@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import AuthAppearance from "@/components/AuthAppearance";
 import styles from "./page.module.css";
 
 export default function ResetPasswordPage() {
@@ -54,7 +55,7 @@ export default function ResetPasswordPage() {
     }
 
     return (
-        <main className={styles.page}>
+        <AuthAppearance>
             <div className={styles.card}>
                 <div className={styles.header}>
                     <h1>Choose a new password</h1>
@@ -124,6 +125,6 @@ export default function ResetPasswordPage() {
                     </button>
                 </form>
             </div>
-        </main>
+        </AuthAppearance>
     );
 }

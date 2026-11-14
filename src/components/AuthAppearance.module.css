@@ -1,0 +1,39 @@
+.page {
+    --page-background: #f7f7f5;
+    --surface-color: #fff;
+    --panel-color: #f6f6f3;
+    --text-color: #171717;
+    --strong-text: #111;
+    --muted-text: #666;
+    --control-border-color: #85857e;
+    --card-border: #e5e5e5;
+    --field-border: #d6d6d6;
+    --error-color: #c62828;
+    --success-color: #2e7d32;
+
+    /* Keep Safari form controls in the same color scheme as the login card. */
+    color-scheme: light;
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 76px 24px;
+    background: var(--page-background);
+}
+
+.page[data-theme="dark"] {
+    --page-background: #171715;
+    --surface-color: #222220;
+    --panel-color: #30302c;
+    --text-color: #f5f5ef;
+    --strong-text: #fff;
+    --muted-text: #b8b8b0;
+    --control-border-color: #85857e;
+    --card-border: #3a3a34;
+    --field-border: var(--control-border-color);
+    --error-color: #fca5a5;
+    --success-color: #86efac;
+
+    color-scheme: dark;
+}

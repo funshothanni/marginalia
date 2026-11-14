@@ -2,6 +2,7 @@
 import { FormEvent, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { MAX_DISPLAY_NAME_LENGTH, normalizeDisplayName } from "@/lib/displayName";
+import AuthAppearance from "@/components/AuthAppearance";
 import styles from "./page.module.css";
 
 export default function SignupPage() {
@@ -61,7 +62,7 @@ export default function SignupPage() {
     }
 
     return (
-        <main className={styles.page}>
+        <AuthAppearance>
             <div className={styles.card}>
                 <div className={styles.header}>
                     <h1>create your account</h1>
@@ -177,6 +178,6 @@ export default function SignupPage() {
                     </>
                 )}
             </div>
-        </main>
+        </AuthAppearance>
     );
 }

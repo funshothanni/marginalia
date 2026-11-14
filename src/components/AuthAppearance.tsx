@@ -3,9 +3,9 @@
 import type { ReactNode } from "react";
 import WorkspaceThemeToggle from "@/components/WorkspaceThemeToggle";
 import { useWorkspaceTheme } from "@/components/useWorkspaceTheme";
-import styles from "./page.module.css";
+import styles from "./AuthAppearance.module.css";
 
-export default function LoginAppearance({ children }: { children: ReactNode }) {
+export default function AuthAppearance({ children }: { children: ReactNode }) {
     const { theme, changeTheme } = useWorkspaceTheme();
 
     return (
