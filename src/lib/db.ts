@@ -33,6 +33,22 @@ export async function insertChunks(chunks: EmbeddedChunk[], documentId: number) 
     return data;
 }
 
+export async function hasStudyMaterial(userId: string, subject: string): Promise<boolean> {
+    const supabase = await createAuthenticatedClient();
+    const { data, error } = await supabase
+        .from("note_chunks")
+        .select("id, documents!inner(user_id, subject)")
+        .eq("documents.user_id", userId)
+        .eq("documents.subject", subject)
+        .limit(1);
+
+    if (error) {
+        throw new Error(`Failed to check study material: ${error.message}`);
+    }
+
+    return data.length > 0;
+}
+
 export async function searchChunks(userId: string, queryEmbedding: number[], subject: string, matchCount: number = 5): Promise<SearchResult[]> {
     const supabase = await createAuthenticatedClient();
 

@@ -21,7 +21,7 @@ describe("generateAnswer", () => {
         vi.clearAllMocks();
     });
 
-    it("includes conversation history in the OpenAI request", async () => {
+    it("sends the current question and study evidence", async () => {
         mockCreate.mockResolvedValue({
             choices: [
                 {
@@ -32,21 +32,9 @@ describe("generateAnswer", () => {
             ],
         });
 
-        const history = [
-            {
-                role: "user" as const,
-                content: "What is classical conditioning?",
-            },
-            {
-                role: "assistant" as const,
-                content: "Classical conditioning is learning through association.",
-            },
-        ];
-
         const answer = await generateAnswer(
             "Can you give me an example of that?",
-            "Classical conditioning involves learning through associations.",
-            history
+            "Classical conditioning involves learning through associations."
         );
 
         expect(answer).toBe("Here is an example.");
@@ -54,23 +42,14 @@ describe("generateAnswer", () => {
         const request = mockCreate.mock.calls[0][0];
         const messages = request.messages;
 
-        expect(messages[1]).toEqual({
-            role: "user",
-            content: "What is classical conditioning?",
-        });
+        expect(messages).toHaveLength(2);
+        expect(messages[1].role).toBe("user");
 
-        expect(messages[2]).toEqual({
-            role: "assistant",
-            content: "Classical conditioning is learning through association.",
-        });
-
-        expect(messages[3].role).toBe("user");
-
-        expect(messages[3].content).toContain(
+        expect(messages[1].content).toContain(
             "Can you give me an example of that?"
         );
 
-        expect(messages[3].content).toContain(
+        expect(messages[1].content).toContain(
             "Classical conditioning involves learning through associations."
         );
     });

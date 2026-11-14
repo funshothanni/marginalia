@@ -294,6 +294,11 @@ export default function Workspace({ displayName }: { displayName: string }) {
                     data.error
                 );
 
+                if (response.status === 422) {
+                    setMessages((previous) => previous.filter((message) => message !== userMessage));
+                    setQuestion((draft) => draft || currentQuestion);
+                }
+
                 alert(
                     (data.error || "question failed.").toLowerCase()
                 );

@@ -1,8 +1,9 @@
 import {beforeEach, describe, expect, it, vi} from "vitest";
 
-const {mockAskQuestion, mockCreateMessage, mockUpdateChatTimestamp, mockGetChat, mockUpdateChatTitle, mockGetMessages, mockGetCurrentUser,
+const {mockHasStudyMaterial, mockAskQuestion, mockCreateMessage, mockUpdateChatTimestamp, mockGetChat, mockUpdateChatTitle, mockGetMessages, mockGetCurrentUser,
 } = vi.hoisted(() => ({
     mockAskQuestion: vi.fn(),
+    mockHasStudyMaterial: vi.fn(),
     mockCreateMessage: vi.fn(),
     mockUpdateChatTimestamp: vi.fn(),
     mockGetChat: vi.fn(),
@@ -19,6 +20,7 @@ vi.mock("../lib/db", () => ({
     createMessage: mockCreateMessage,
     updateChatTimestamp: mockUpdateChatTimestamp,
     getChat: mockGetChat,
+    hasStudyMaterial: mockHasStudyMaterial,
     updateChatTitle: mockUpdateChatTitle,
     getMessages: mockGetMessages,
 }));
@@ -32,9 +34,25 @@ import {POST} from "../app/api/query/route";
 describe("POST /api/query", () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        mockHasStudyMaterial.mockResolvedValue(true);
         mockGetCurrentUser.mockResolvedValue({id: "test-user-id", app_metadata: {}, user_metadata: {}, aud: "authenticated", created_at: "2026-09-27T00:00:00Z",});
         mockGetChat.mockResolvedValue({id: 7, title: "New Chat", subject: "PSYC 2000", created_at: "2026-09-23T12:00:00Z", updated_at: "2026-09-23T12:00:00Z",});
         mockGetMessages.mockResolvedValue([]);
+    });
+
+    it("blocks questions for a chat without indexed material", async () => {
+        mockHasStudyMaterial.mockResolvedValueOnce(false);
+
+        const response = await POST(new Request("http://localhost/api/query", {
+            method: "POST",
+            body: JSON.stringify({ question: "What is in the notes?", subject: "COMP 3380", chatId: 7 }),
+        }));
+
+        expect(response.status).toBe(422);
+        expect(mockHasStudyMaterial).toHaveBeenCalledWith("test-user-id", "PSYC 2000");
+        expect(mockAskQuestion).not.toHaveBeenCalled();
+        expect(mockCreateMessage).not.toHaveBeenCalled();
+        expect(mockUpdateChatTitle).not.toHaveBeenCalled();
     });
 
     it("receives a valid question and subject", async () => {
@@ -253,8 +271,8 @@ describe("POST /api/query", () => {
         expect(response.status).toBe(500);
         expect(body).toEqual({error: "Something went wrong"});
         expect(mockAskQuestion).toHaveBeenCalledWith("test-user-id", "What is operant conditioning?", "PSYC 2000", []);
-        expect(mockCreateMessage).toHaveBeenCalledWith("test-user-id", 7, "user", "What is operant conditioning?");
-        expect(mockCreateMessage).toHaveBeenCalledTimes(1);
+        expect(mockCreateMessage).not.toHaveBeenCalled();
+        expect(mockUpdateChatTitle).not.toHaveBeenCalled();
     });
 
     it("passes previous chat messages to askQuestion", async () => {

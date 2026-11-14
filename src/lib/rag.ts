@@ -5,6 +5,10 @@ import type { SearchResult } from "@/types/searchResult";
 import type { Message } from "@/types/message";
 import { rewriteQuestion } from "./rewrite";
 
+// Nearest-neighbor search can return weak matches even for unrelated questions.
+const MINIMUM_CHUNK_SIMILARITY = 0.35;
+const NO_SUPPORTING_MATERIAL = "I couldn't find enough information in your uploaded materials to answer that.";
+
 export async function askQuestion(userId: string, question: string, subject: string, conversationHistory: Message[] = []): Promise<string> {
     const history = conversationHistory
         .slice(-10)
@@ -17,7 +21,14 @@ export async function askQuestion(userId: string, question: string, subject: str
     const embeddedQuestion = await embedText(retrievalQuestion);
     const result: SearchResult[] = await searchChunks(userId, embeddedQuestion, subject, 5);
     const context = result
-        .map((chunk) => chunk.text)
+        .filter((chunk) => chunk.similarity >= MINIMUM_CHUNK_SIMILARITY)
+        .map((chunk) => chunk.text.trim())
+        .filter(Boolean)
         .join("\n\n");
-    return generateAnswer(question, context, history);
+    if (!context) {
+        return NO_SUPPORTING_MATERIAL;
+    }
+
+    // Earlier answers can refer to deleted material. Use history to resolve the question only.
+    return generateAnswer(retrievalQuestion, context);
 }

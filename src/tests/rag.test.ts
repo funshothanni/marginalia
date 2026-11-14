@@ -66,114 +66,22 @@ describe("askQuestion", () => {
         expect(answer).toBe("Vector similarity compares text embeddings to find related information.");
         expect(mockEmbedText).toHaveBeenCalledWith(question);
         expect(mockSearchChunks).toHaveBeenCalledWith("test-user-id", [0.1, 0.2, 0.3], subject, 5);
-        expect(mockGenerateAnswer).toHaveBeenCalledWith(question, "Vector similarity compares numerical representations of text.\n\n" + "RAG uses similarity search to retrieve relevant information.", []);
+        expect(mockGenerateAnswer).toHaveBeenCalledWith(question, "Vector similarity compares numerical representations of text.\n\n" + "RAG uses similarity search to retrieve relevant information.");
     });
 
-    it("passes conversation history to generateAnswer", async () => {
-        mockEmbedText.mockResolvedValue([0.1, 0.2, 0.3]);
+    it.each([{ chunks: [] }, { chunks: [{ text: "Unrelated notes", similarity: 0.1 }] }])(
+        "returns a grounded fallback without generating when no relevant excerpts qualify",
+        async ({ chunks }) => {
+            mockEmbedText.mockResolvedValue([0.1, 0.2]);
+            mockSearchChunks.mockResolvedValue(chunks);
 
-        mockSearchChunks.mockResolvedValue([
-            {
-                id: 1,
-                text: "Classical conditioning is a form of learning through association.",
-                source_doc: "psychology.pdf",
-                metadata: { subject: "PSYC" },
-                similarity: 0.9,
-            },
-        ]);
+            await expect(askQuestion("test-user-id", "What is in the notes?", "COMP 3380"))
+                .resolves.toMatch(/couldn't find enough information/);
+            expect(mockGenerateAnswer).not.toHaveBeenCalled();
+        }
+    );
 
-        mockGenerateAnswer.mockResolvedValue(
-            "An example is a dog learning to associate a bell with food."
-        );
-
-        const conversationHistory = [
-            {
-                id: 1,
-                chat_id: 7,
-                role: "user" as const,
-                content: "What is classical conditioning?",
-                created_at: "2026-09-24T10:00:00Z",
-            },
-            {
-                id: 2,
-                chat_id: 7,
-                role: "assistant" as const,
-                content: "Classical conditioning is learning through association.",
-                created_at: "2026-09-24T10:00:05Z",
-            },
-        ];
-
-        await askQuestion("test-user-id",
-            "Can you give me an example of that?",
-            "PSYC",
-            conversationHistory
-        );
-
-        expect(mockGenerateAnswer).toHaveBeenCalledWith(
-            "Can you give me an example of that?",
-            "Classical conditioning is a form of learning through association.",
-            [
-                {
-                    role: "user",
-                    content: "What is classical conditioning?",
-                },
-                {
-                    role: "assistant",
-                    content: "Classical conditioning is learning through association.",
-                },
-            ]
-        );
-    });
-
-    it("limits conversation history to the 10 most recent messages", async () => {
-        mockEmbedText.mockResolvedValue([0.1, 0.2, 0.3]);
-
-        mockSearchChunks.mockResolvedValue([
-            {
-                id: 1,
-                text: "Relevant study material.",
-                source_doc: "test.pdf",
-                metadata: { subject: "PSYC" },
-                similarity: 0.9,
-            },
-        ]);
-
-        mockGenerateAnswer.mockResolvedValue("Answer");
-
-        const conversationHistory = Array.from(
-            { length: 12 },
-            (_, index) => ({
-                id: index + 1,
-                chat_id: 7,
-                role: "user" as const,
-                content: `Message ${index + 1}`,
-                created_at: `2026-09-24T10:00:${String(index).padStart(2, "0")}Z`,
-            })
-        );
-
-        await askQuestion(
-            "test-user-id",
-            "Current question",
-            "PSYC",
-            conversationHistory
-        );
-
-        const expectedHistory = Array.from(
-            { length: 10 },
-            (_, index) => ({
-                role: "user" as const,
-                content: `Message ${index + 3}`,
-            })
-        );
-
-        expect(mockGenerateAnswer).toHaveBeenCalledWith(
-            "Current question",
-            "Relevant study material.",
-            expectedHistory
-        );
-    });
-
-    it("uses the rewritten question for retrieval and the original question for generation", async () => {
+    it("uses the rewritten question without sending old answers to generation", async () => {
         const question = "Can you explain the second one more simply?";
 
         const history = [
@@ -228,14 +136,8 @@ describe("askQuestion", () => {
         );
 
         expect(mockGenerateAnswer).toHaveBeenCalledWith(
-            question,
-            "Linear algebra studies vectors and matrices.",
-            [
-                {
-                    role: "assistant",
-                    content: "1. Probability\n2. Linear Algebra\n3. Vector Calculus",
-                },
-            ]
+            "Can you explain Linear Algebra more simply?",
+            "Linear algebra studies vectors and matrices."
         );
     });
-})
+});
