@@ -1,3 +1,4 @@
+import { normalizeDisplayName } from "../../../../lib/displayName";
 import { createClient } from "../../../../lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -30,11 +31,18 @@ export async function POST(request: Request) {
             );
         }
 
+        const displayName = normalizeDisplayName(body.displayName);
+        // Older API callers may omit the name. Validate it when supplied.
+        if (body.displayName !== undefined && !displayName) {
+            return Response.json({ error: "Invalid display name." }, { status: 400 });
+        }
+
         const supabase = await createClient();
 
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
+            ...(displayName && { options: { data: { full_name: displayName } } }),
         });
 
         if (error) {

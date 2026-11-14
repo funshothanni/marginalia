@@ -1,9 +1,11 @@
 "use client";
 import { FormEvent, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { MAX_DISPLAY_NAME_LENGTH, normalizeDisplayName } from "@/lib/displayName";
 import styles from "./page.module.css";
 
 export default function SignupPage() {
+    const [displayName, setDisplayName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -17,6 +19,12 @@ export default function SignupPage() {
 
         setError("");
         setMessage("");
+
+        const name = normalizeDisplayName(displayName);
+        if (!name) {
+            setError(`Enter a display name up to ${MAX_DISPLAY_NAME_LENGTH} characters.`);
+            return;
+        }
 
         if (password !== confirmPassword) {
             setError("Passwords do not match.");
@@ -36,6 +44,8 @@ export default function SignupPage() {
             email,
             password,
             options: {
+                // Supabase Auth uses full_name metadata for the dashboard display name.
+                data: { full_name: name },
                 emailRedirectTo: `${window.location.origin}/auth/confirm`,
             },
         });
@@ -77,6 +87,19 @@ export default function SignupPage() {
                             onSubmit={handleSignup}
                             className={styles.form}
                         >
+                            <div className={styles.field}>
+                                <label htmlFor="displayName">display name</label>
+                                <input
+                                    id="displayName"
+                                    type="text"
+                                    autoComplete="nickname"
+                                    maxLength={MAX_DISPLAY_NAME_LENGTH}
+                                    value={displayName}
+                                    onChange={(event) => setDisplayName(event.target.value)}
+                                    required
+                                />
+                            </div>
+
                             <div className={styles.field}>
                                 <label htmlFor="email">
                                     email

@@ -58,6 +58,38 @@ describe("POST /api/auth/signup", () => {
         });
     });
 
+    test("saves a trimmed display name in Supabase Auth metadata", async () => {
+        const request = new Request("http://localhost/api/auth/signup", {
+            method: "POST",
+            body: JSON.stringify({
+                email: "student@example.com",
+                password: "password123",
+                displayName: "  Alex  ",
+            }),
+        });
+
+        expect((await POST(request)).status).toBe(201);
+        expect(mockSignUp).toHaveBeenCalledWith({
+            email: "student@example.com",
+            password: "password123",
+            options: { data: { full_name: "Alex" } },
+        });
+    });
+
+    test("rejects a blank display name when supplied", async () => {
+        const request = new Request("http://localhost/api/auth/signup", {
+            method: "POST",
+            body: JSON.stringify({
+                email: "student@example.com",
+                password: "password123",
+                displayName: "   ",
+            }),
+        });
+
+        expect((await POST(request)).status).toBe(400);
+        expect(mockSignUp).not.toHaveBeenCalled();
+    });
+
     test("returns 400 when email is missing", async () => {
         const request = new Request(
             "http://localhost/api/auth/signup",

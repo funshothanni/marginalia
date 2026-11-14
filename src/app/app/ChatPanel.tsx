@@ -7,6 +7,11 @@ import type { Message } from "./workspaceTypes";
 import styles from "./page.module.css";
 
 type Props = {
+    displayName: string;
+    hasConversation: boolean;
+    subjects: string[];
+    onSelectSubject: (subject: string) => void;
+    onOpenSidebar: () => void;
     selectedSubject: string;
     isUploading: boolean;
     uploadedFileName?: string;
@@ -20,6 +25,11 @@ type Props = {
 };
 
 export default function ChatPanel({
+    displayName,
+    hasConversation,
+    subjects,
+    onSelectSubject,
+    onOpenSidebar,
     selectedSubject,
     isUploading,
     uploadedFileName,
@@ -35,49 +45,60 @@ export default function ChatPanel({
 
     return (
         <section className={styles.chatArea}>
-            <div className={styles.chat}>
-                <p className={styles.currentSubject} role="status">
-                    <span>Selected subject: </span>
-                    <strong>{selectedSubject || "None selected"}</strong>
-                </p>
-                <div className={styles.messages}>
-                    {messages.map((message, index) => (
-                        <div
-                            key={index}
-                            className={
-                                message.role === "user"
-                                    ? styles.userMessage
-                                    : styles.assistantMessage
-                            }
-                        >
-                            {message.role === "assistant" ? (
-                                <ReactMarkdown
-                                    remarkPlugins={[remarkMath]}
-                                    rehypePlugins={[rehypeKatex]}
+            <div className={hasConversation ? styles.chat : styles.welcome}>
+                {!hasConversation && (
+                    <h2 className={`${styles.welcomeTitle} ${styles.ragText}`}>
+                        {displayName ? `hello ${displayName}!` : "hello!"}
+                    </h2>
+                )}
+                {hasConversation && (
+                    <>
+
+                        <p className={styles.currentSubject} role="status">
+                            <span>Selected subject: </span>
+                            <strong>{selectedSubject || "None selected"}</strong>
+                        </p>
+                        <div className={styles.messages}>
+                            {messages.map((message, index) => (
+                                <div
+                                    key={index}
+                                    className={
+                                        message.role === "user"
+                                            ? styles.userMessage
+                                            : styles.assistantMessage
+                                    }
                                 >
-                                    {message.text}
-                                </ReactMarkdown>
-                            ) : (
-                                message.text
+                                    {message.role === "assistant" ? (
+                                        <ReactMarkdown
+                                            remarkPlugins={[remarkMath]}
+                                            rehypePlugins={[rehypeKatex]}
+                                        >
+                                            {message.text}
+                                        </ReactMarkdown>
+                                    ) : (
+                                        message.text
+                                    )}
+                                </div>
+                            ))}
+
+                            {isLoading && (
+                                <div className={styles.typingIndicator}>
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
                             )}
-                        </div>
-                    ))}
 
-                    {isLoading && (
-                        <div className={styles.typingIndicator}>
-                            <span></span>
-                            <span></span>
-                            <span></span>
+                            <div ref={messagesEndRef} />
                         </div>
-                    )}
-
-                    <div ref={messagesEndRef} />
-                </div>
+                    </>
+                )}
                 <div className={styles.chatUploadStatus} role="status">
                     {isUploading ? "Uploading and processing PDF…" : uploadedFileName && (
                         <p className={styles.uploadedFile}>Uploaded: {uploadedFileName}</p>
                     )}
                 </div>
+                {/* Keep the composer mounted when the first message opens the conversation. */}
                 <form
                     className={styles.form}
                     onSubmit={handleSubmit}
@@ -126,6 +147,34 @@ export default function ChatPanel({
                         Send
                     </button>
                 </form>
+                {!hasConversation && (
+                    <div className={styles.welcomeSubject}>
+                        {subjects.length > 0 ? (
+                            <>
+                                <label htmlFor="welcome-subject">Subject</label>
+                                <select
+                                    id="welcome-subject"
+                                    className={styles.select}
+                                    value={selectedSubject}
+                                    onChange={(event) => onSelectSubject(event.target.value)}
+                                >
+                                    <option value="">Select a subject</option>
+                                    {subjects.map((subject) => (
+                                        <option key={subject} value={subject}>{subject}</option>
+                                    ))}
+                                </select>
+                            </>
+                        ) : (
+                            <button
+                                type="button"
+                                className={styles.addSubjectButton}
+                                onClick={onOpenSidebar}
+                            >
+                                Manage subjects
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
         </section>
     );

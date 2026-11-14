@@ -1,6 +1,8 @@
+import { cache } from "react";
 import { createClient } from "./supabase/server";
 
-export async function getCurrentUser() {
+// Share the verified user lookup between the protected layout and its page.
+export const getCurrentUser = cache(async function getCurrentUser() {
     const supabase = await createClient();
 
     const {
@@ -13,4 +15,4 @@ export async function getCurrentUser() {
     }
 
     return user;
-}
+});
