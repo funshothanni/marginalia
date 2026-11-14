@@ -1,19 +1,59 @@
 "use client";
 
 import {Inter} from "next/font/google";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import styles from "./page.module.css";
 import ChatPanel from "./ChatPanel";
+import WorkspaceThemeToggle, { type WorkspaceTheme } from "./WorkspaceThemeToggle";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 import type { Chat, Message, StudyDocument } from "./workspaceTypes";
 
 const SELECTED_SUBJECT_STORAGE_KEY = "selectedSubject";
+
+const WORKSPACE_THEME_KEY = "marginalia.workspaceTheme";
+const WORKSPACE_THEME_EVENT = "marginalia:themechange";
+
+function subscribeToTheme(onChange: () => void) {
+    window.addEventListener(WORKSPACE_THEME_EVENT, onChange);
+    window.addEventListener("storage", onChange);
+
+    return () => {
+        window.removeEventListener(WORKSPACE_THEME_EVENT, onChange);
+        window.removeEventListener("storage", onChange);
+    };
+}
+
+function getSavedTheme(): WorkspaceTheme {
+    try {
+        return localStorage.getItem(WORKSPACE_THEME_KEY) === "dark" ? "dark" : "light";
+    } catch {
+        return "light";
+    }
+}
+
+function getDefaultTheme(): WorkspaceTheme {
+    return "light";
+}
 
 const inter = Inter({
     subsets: ["latin"]
 });
 
 export default function Home() {
+    const savedTheme = useSyncExternalStore(subscribeToTheme, getSavedTheme, getDefaultTheme);
+    const [temporaryTheme, setTemporaryTheme] = useState<WorkspaceTheme>();
+    const theme = temporaryTheme ?? savedTheme;
+
+    function changeTheme(nextTheme: WorkspaceTheme) {
+        try {
+            localStorage.setItem(WORKSPACE_THEME_KEY, nextTheme);
+            setTemporaryTheme(undefined);
+            window.dispatchEvent(new Event(WORKSPACE_THEME_EVENT));
+        } catch {
+            setTemporaryTheme(nextTheme);
+        }
+    }
+
     const [question, setQuestion] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -460,6 +500,7 @@ export default function Home() {
 
     return (
         <main
+            data-theme={theme}
             className={`${styles.container} ${inter.className} ${
                 sidebarOpen ? styles.sidebarActive : ""
             }`}
@@ -488,6 +529,7 @@ export default function Home() {
                 <p className={styles.subtitle}>
                     notes that talk back...
                 </p>
+                <WorkspaceThemeToggle theme={theme} onChange={changeTheme} />
             </header>
 
 

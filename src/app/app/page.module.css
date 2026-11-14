@@ -8,6 +8,10 @@
     --control-border-color: #85857e;
     --surface-color: #fff;
     --text-color: #171717;
+    --gold-text-color: #171717;
+    --brand-start-color: #80651f;
+    --brand-end-color: #665511;
+    --success-color: var(--success-color);
 
     color-scheme: light;
 
@@ -23,6 +27,20 @@
     flex-direction: column;
 
     overflow: hidden;
+}
+
+.container[data-theme="dark"] {
+    --muted-text-color: #b8b8b0;
+    --panel-color: #272723;
+    --border-color: #3a3a34;
+    --control-border-color: #77776d;
+    --surface-color: #171715;
+    --text-color: #f5f5ef;
+    --brand-start-color: #f0c779;
+    --brand-end-color: #d7ad55;
+    --success-color: #86efac;
+
+    color-scheme: dark;
 }
 
 .header {
@@ -49,8 +67,8 @@
 .ragText {
     background: linear-gradient(
             90deg,
-            #80651f,
-            #665511
+            var(--brand-start-color),
+            var(--brand-end-color)
     );
 
     background-clip: text;
@@ -95,6 +113,24 @@
     transition: background 0.2s ease;
 }
 
+.themeToggle {
+    position: absolute;
+    top: 24px;
+    right: 16px;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--control-border-color);
+    border-radius: 50%;
+    background: var(--surface-color);
+    color: var(--text-color);
+    font-size: 1.125rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.themeToggle:hover,
 .menuButton:hover {
     background: var(--panel-color);
 }
@@ -266,7 +302,7 @@
     border-radius: 8px;
 
     background: var(--accent-color);
-    color: var(--text-color);
+    color: var(--gold-text-color);
 
     cursor: pointer;
 
@@ -358,7 +394,7 @@
     border-radius: 8px;
 
     background: var(--accent-color);
-    color: var(--text-color);
+    color: var(--gold-text-color);
 
     cursor: pointer;
 
@@ -370,7 +406,7 @@
 }
 
 .uploadedFile {
-    color: #166534;
+    color: var(--success-color);
 }
 
 .chatArea {
@@ -445,7 +481,7 @@
 
     background: var(--accent-color);
 
-    color: var(--text-color);
+    color: var(--gold-text-color);
 
     line-height: 1.5;
 
@@ -531,7 +567,7 @@
     border: none;
     border-radius: 8px;
     background: var(--chat-action-background);
-    color: var(--text-color);
+    color: var(--gold-text-color);
     cursor: pointer;
 }
 
@@ -697,6 +733,7 @@
 
 .activeChat {
     background: var(--accent-color);
+    color: var(--gold-text-color);
 }
 
 .chatHistoryHeader {
@@ -736,6 +773,10 @@
 }
 
 /* Account / Logout section */
+
+.accountSection :global(.logoutButton):hover {
+    background: var(--panel-color);
+}
 
 .accountSection {
     position: sticky;
