@@ -1,4 +1,6 @@
 .container {
+    /* Keep the sidebar and the workspace offset in sync. */
+    --sidebar-width: 320px;
     --accent-color: #afa65b;
     --chat-action-background: #e2b65e;
     --chat-action-hover-background: #f0c779;
@@ -126,7 +128,7 @@
     top: 0;
     left: 0;
 
-    width: 300px;
+    width: var(--sidebar-width);
     height: 100vh;
 
     box-sizing: border-box;
@@ -296,6 +298,10 @@
 
 .saveSubjectButton:hover {
     background: var(--accent-color);
+}
+
+.uploadedDocuments {
+    margin-block-end: 1.5rem;
 }
 
 .uploadSection {
@@ -680,13 +686,13 @@
 }
 
 .sidebarActive .header {
-    margin-left: 300px;
-    width: calc(100% - 300px);
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
 }
 
 .sidebarActive .chatArea {
-    margin-left: 300px;
-    width: calc(100% - 300px);
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
 }
 
 .documentItem {
@@ -857,8 +863,7 @@
     }
 
     .sidebar {
-        width: 85%;
-        max-width: 320px;
+        width: min(85%, var(--sidebar-width));
     }
 
     .messages {
@@ -877,4 +882,13 @@
     .sendButton {
         padding: 0 16px;
     }
+}
+
+/* Preserve subject acronyms within the lowercase interface. */
+.select,
+.subjectCode,
+.preserveCase,
+.questionInput::placeholder,
+.subjectInput::placeholder {
+    text-transform: none;
 }

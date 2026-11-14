@@ -53,8 +53,8 @@ export default function ChatPanel({
                     <>
 
                         <p className={styles.currentSubject} role="status">
-                            <span>Selected subject: </span>
-                            <strong>{selectedSubject || "None selected"}</strong>
+                            <span>selected subject: </span>
+                            <strong className={selectedSubject ? styles.subjectCode : undefined}>{selectedSubject || "none selected"}</strong>
                         </p>
                         <div className={styles.messages}>
                             {messages.map((message, index) => (
@@ -92,7 +92,7 @@ export default function ChatPanel({
                     </>
                 )}
                 <div className={styles.chatUploadStatus} role="status">
-                    {isUploading ? "Uploading and processing PDF…" : uploadedFileName && (
+                    {isUploading ? "uploading and processing PDF…" : uploadedFileName && (
                         <p className={styles.uploadedFile}>Uploaded: {uploadedFileName}</p>
                     )}
                 </div>
@@ -104,8 +104,8 @@ export default function ChatPanel({
                     <button
                         className={styles.attachButton}
                         type="button"
-                        aria-label="Upload a PDF"
-                        title={selectedSubject ? "Upload a PDF" : "Select a subject to upload a PDF"}
+                        aria-label="upload a pdf"
+                        title={selectedSubject ? "upload a pdf" : "select a subject to upload a pdf"}
                         disabled={!selectedSubject || isUploading}
                         onClick={() => fileInputRef.current?.click()}
                     >
@@ -126,10 +126,10 @@ export default function ChatPanel({
                         }}
                     />
                     <input
-                        className={styles.input}
+                        className={`${styles.input} ${styles.questionInput}`}
                         type="text"
-                        aria-label="Question"
-                        placeholder={selectedSubject ? `Ask a ${selectedSubject} question` : "Select a subject and ask a question…"}
+                        aria-label="question"
+                        placeholder={selectedSubject ? `ask a ${selectedSubject} question` : "select a subject and ask a question…"}
                         value={question}
                         onChange={(event) =>
                             setQuestion(
@@ -142,23 +142,23 @@ export default function ChatPanel({
                         className={styles.sendButton}
                         type="submit"
                     >
-                        Send
+                        send
                     </button>
                 </form>
                 {!hasConversation && (
                     <div className={styles.welcomeSubject}>
                         <select
-                            aria-label="Select subject"
+                            aria-label="select subject"
                             className={styles.select}
                             value={selectedSubject}
                             onChange={(event) => onSelectSubject(event.target.value)}
                         >
-                            <option value="">Select subject</option>
+                            <option value="">select subject</option>
                             {subjects.length === 0 && (
-                                <option disabled>No subjects available</option>
+                                <option disabled>no subjects available</option>
                             )}
                             {subjects.map((subject) => (
-                                <option key={subject} value={subject}>{subject}</option>
+                                <option className={styles.subjectCode} key={subject} value={subject}>{subject}</option>
                             ))}
                         </select>
                     </div>

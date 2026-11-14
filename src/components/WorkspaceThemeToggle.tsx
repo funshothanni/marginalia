@@ -9,7 +9,7 @@ export default function WorkspaceThemeToggle({
     onChange: (theme: WorkspaceTheme) => void;
 }) {
     const nextTheme = theme === "dark" ? "light" : "dark";
-    const label = `Switch to ${nextTheme} mode`;
+    const label = `switch to ${nextTheme} mode`;
 
     return (
         <button

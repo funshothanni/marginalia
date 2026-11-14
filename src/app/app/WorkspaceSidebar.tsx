@@ -71,7 +71,7 @@ export default function WorkspaceSidebar({
             type="button"
             onClick={handleNewChat}
         >
-            <span className={styles.brandLabel}>New Chat</span>
+            <span className={styles.brandLabel}>new chat</span>
 
             <svg
                 width="16"
@@ -91,7 +91,7 @@ export default function WorkspaceSidebar({
 
         <div className={styles.subjectSection}>
             <label className={styles.label}>
-                <span className={styles.brandLabel}>Subject</span>
+                <span className={styles.brandLabel}>subject</span>
             </label>
 
             <select
@@ -100,11 +100,12 @@ export default function WorkspaceSidebar({
                 onChange={(event) => selectSubject(event.target.value)}
             >
                 <option value="">
-                    Select subject
+                    select subject
                 </option>
 
                 {subjects.map((subject) => (
                     <option
+                        className={styles.subjectCode}
                         key={subject}
                         value={subject}
                     >
@@ -124,7 +125,7 @@ export default function WorkspaceSidebar({
                     )
                 }
             >
-                Add Subject
+                add subject
             </button>
 
             {showAddSubject && (
@@ -144,7 +145,6 @@ export default function WorkspaceSidebar({
                         onChange={(event) =>
                             setNewSubject(
                                 event.target.value
-                                    .toUpperCase()
                             )
                         }
                     />
@@ -158,19 +158,19 @@ export default function WorkspaceSidebar({
                             handleAddSubject
                         }
                     >
-                        Save Subject
+                        save subject
                     </button>
                 </div>
             )}
         </div>
 
         {selectedSubject && (
-            <div>
+            <div className={styles.uploadedDocuments}>
                 <p className={styles.label}>
-                    Uploaded Documents
+                    <span className={styles.brandLabel}>uploaded documents</span>
                 </p>
                 {documents.length === 0 ? (
-                    <p>No {selectedSubject} documents uploaded yet.</p>
+                    <p>no <span className={styles.subjectCode}>{selectedSubject}</span> documents uploaded yet.</p>
                 ) : (
                     <ul>
                         {documents.map((document) => (
@@ -187,8 +187,8 @@ export default function WorkspaceSidebar({
                                     onClick={() =>
                                         handleDeleteDocument(document.id)
                                     }
-                                    aria-label={`Delete ${document.file_name}`}
-                                    title="Delete document"
+                                    aria-label={`delete ${document.file_name.toLowerCase()}`}
+                                    title="delete document"
                                 >
                                     <svg
                                         width="18"
@@ -216,7 +216,7 @@ export default function WorkspaceSidebar({
         )}
 
         <div className={styles.uploadSection}>
-            <p className={styles.label}><span className={styles.brandLabel}>Upload Study Material</span></p>
+            <p className={styles.label}><span className={styles.brandLabel}>upload study material</span></p>
 
             <div className={styles.filePicker}>
                 <input
@@ -236,7 +236,7 @@ export default function WorkspaceSidebar({
                     }}
                 />
                 <label htmlFor="pdfFile" className={styles.chooseFileButton}>
-                    {file ? "Change PDF" : "Choose PDF"}
+                    {file ? "change PDF" : "choose PDF"}
                 </label>
             </div>
 
@@ -244,7 +244,7 @@ export default function WorkspaceSidebar({
                 {file && (
                     <div className={styles.selectedPdf}>
                         <p className={styles.label}>
-                            <span className={styles.brandLabel}>Selected PDF</span>
+                            <span className={`${styles.brandLabel} ${styles.preserveCase}`}>selected PDF</span>
                         </p>
                         <p className={styles.fileName}>{file.name}</p>
                     </div>
@@ -257,11 +257,11 @@ export default function WorkspaceSidebar({
                 onClick={handleFileUpload}
                 disabled={isUploading || !file}
             >
-                {isUploading ? "Uploading…" : "Upload PDF"}
+                {isUploading ? "uploading…" : "upload PDF"}
             </button>
 
             <div role="status">
-                {isUploading ? "Uploading and processing PDF…" : uploadedFile && (
+                {isUploading ? "uploading and processing PDF…" : uploadedFile && (
                     <p className={styles.uploadedFile}>Uploaded: {uploadedFile.name}</p>
                 )}
             </div>
@@ -269,7 +269,7 @@ export default function WorkspaceSidebar({
         <div className={styles.chatHistorySection}>
             <div className={styles.chatHistoryHeader}>
                 <p className={styles.label}>
-                    <span className={styles.brandLabel}>Chat History</span>
+                    <span className={styles.brandLabel}>chat history</span>
                 </p>
 
 

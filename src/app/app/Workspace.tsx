@@ -183,7 +183,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
         event.preventDefault();
 
         if (selectedSubject === "") {
-            alert("Please select a subject first.");
+            alert("please select a subject first.");
             return;
         }
 
@@ -230,8 +230,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
                     );
 
                     alert(
-                        chatData.error ||
-                        "Failed to create chat."
+                        (chatData.error || "failed to create chat.").toLowerCase()
                     );
 
                     return;
@@ -270,8 +269,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
                 );
 
                 alert(
-                    data.error ||
-                    "Question failed."
+                    (data.error || "question failed.").toLowerCase()
                 );
 
                 return;
@@ -301,7 +299,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
                 error
             );
 
-            alert("Question failed.");
+            alert("question failed.");
         } finally {
             setIsLoading(false);
         }
@@ -314,7 +312,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
 
         if (!/^[A-Z]{3}$/.test(subject) && !/^[A-Z]{4}$/.test(subject)) {
             alert(
-                "Subject must be 3 or 4 letters."
+                "subject must be 3 or 4 letters."
             );
             return;
         }
@@ -334,7 +332,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
 
     async function handleDeleteDocument(documentId: number) {
         const confirmed = window.confirm(
-            "Are you sure you want to delete this document?"
+            "are you sure you want to delete this document?"
         );
 
         if (!confirmed) {
@@ -354,8 +352,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
             if (!response.ok) {
                 console.error(data);
                 alert(
-                    data.error ||
-                    "Failed to delete document."
+                    (data.error || "failed to delete document.").toLowerCase()
                 );
                 return;
             }
@@ -372,7 +369,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
                 error
             );
 
-            alert("Failed to delete document.");
+            alert("failed to delete document.");
         }
     }
 
@@ -392,12 +389,12 @@ export default function Workspace({ displayName }: { displayName: string }) {
         }
 
         if (selectedSubject === "") {
-            alert("Please select a subject first.");
+            alert("please select a subject first.");
             return;
         }
 
         if (!fileToUpload) {
-            alert("Please choose a PDF first.");
+            alert("please choose a pdf first.");
             return;
         }
 
@@ -427,8 +424,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
                 console.error(data);
 
                 alert(
-                    data.error ||
-                    "File upload failed."
+                    (data.error || "file upload failed.").toLowerCase()
                 );
 
                 return;
@@ -456,7 +452,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
                 error
             );
 
-            alert("File upload failed.");
+            alert("file upload failed.");
         } finally {
             setIsUploading(false);
         }

@@ -32,7 +32,7 @@ export default function LogoutButton() {
             disabled={loading}
             type="button"
         >
-            {loading ? "Logging out..." : "Log out"}
+            {loading ? "logging out..." : "log out"}
         </button>
     );
 }
