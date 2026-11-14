@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import AuthAppearance from "@/components/AuthAppearance";
 import styles from "./page.module.css";
 
 export default function ForgotPasswordPage() {
@@ -43,7 +44,7 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <main className={styles.page}>
+        <AuthAppearance>
             <div className={styles.card}>
                 <div className={styles.header}>
                     <h1>reset your password</h1>
@@ -106,6 +107,6 @@ export default function ForgotPasswordPage() {
                     </a>
                 </p>
             </div>
-        </main>
+        </AuthAppearance>
     );
 }
