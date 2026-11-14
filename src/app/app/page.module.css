@@ -14,8 +14,8 @@
     --brand-start-color: #80651f;
     --brand-end-color: #665511;
     --success-color: #166534;
-    --upload-button-background: #15803d;
-    --upload-button-hover-background: #166534;
+    --confirm-button-background: #15803d;
+    --confirm-button-hover-background: #166534;
 
     color-scheme: light;
 
@@ -302,26 +302,6 @@
     border-color: var(--accent-color);
 }
 
-.saveSubjectButton {
-    width: 100%;
-
-    padding: 12px;
-
-    border: none;
-    border-radius: 8px;
-
-    background: var(--accent-color);
-    color: var(--gold-text-color);
-
-    cursor: pointer;
-
-    font-weight: 600;
-}
-
-.saveSubjectButton:hover {
-    background: var(--accent-color);
-}
-
 .uploadedDocuments {
     margin-block-end: 1.5rem;
 }
@@ -417,6 +397,7 @@
     color: var(--text-color);
 }
 
+.saveSubjectButton,
 .uploadButton {
     width: 100%;
 
@@ -435,13 +416,15 @@
     color: var(--gold-text-color);
 }
 
+.saveSubjectButton,
 .uploadButton {
-    background: var(--upload-button-background);
+    background: var(--confirm-button-background);
     color: #fff;
 }
 
+.saveSubjectButton:hover:not(:disabled),
 .uploadButton:hover:not(:disabled) {
-    background: var(--upload-button-hover-background);
+    background: var(--confirm-button-hover-background);
 }
 
 .uploadedFile {
