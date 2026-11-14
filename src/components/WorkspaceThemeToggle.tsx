@@ -1,6 +1,5 @@
-import styles from "./page.module.css";
-
-export type WorkspaceTheme = "light" | "dark";
+import type { WorkspaceTheme } from "./useWorkspaceTheme";
+import styles from "./WorkspaceThemeToggle.module.css";
 
 export default function WorkspaceThemeToggle({
     theme,

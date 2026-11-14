@@ -1,9 +1,10 @@
+import LoginAppearance from "./LoginAppearance";
 import LoginForm from "./LoginForm";
 import styles from "./page.module.css";
 
 export default function LoginPage() {
     return (
-        <main className={styles.page}>
+        <LoginAppearance>
             <div className={styles.card}>
                 <div className={styles.header}>
                     <h1>marginalia</h1>
@@ -16,6 +17,6 @@ export default function LoginPage() {
                     <a href="/signup">sign up</a>
                 </p>
             </div>
-        </main>
+        </LoginAppearance>
     );
 }

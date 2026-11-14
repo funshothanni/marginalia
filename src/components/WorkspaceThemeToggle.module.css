@@ -1,0 +1,20 @@
+.themeToggle {
+    position: absolute;
+    top: 24px;
+    right: 16px;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--control-border-color);
+    border-radius: 50%;
+    background: var(--surface-color);
+    color: var(--text-color);
+    font-size: 1.125rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.themeToggle:hover {
+    background: var(--panel-color);
+}
