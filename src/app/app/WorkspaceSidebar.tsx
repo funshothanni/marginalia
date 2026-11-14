@@ -240,16 +240,14 @@ export default function WorkspaceSidebar({
                 </label>
             </div>
 
-            <div id="pdfFileName" role="status">
-                {file ? (
+            <div id="pdfFileName" className={styles.pdfSelectionStatus} role="status">
+                {file && (
                     <div className={styles.selectedPdf}>
                         <p className={styles.label}>
                             <span className={styles.brandLabel}>Selected PDF</span>
                         </p>
                         <p className={styles.fileName}>{file.name}</p>
                     </div>
-                ) : (
-                    <p className={styles.fileName}>No PDF selected</p>
                 )}
             </div>
 

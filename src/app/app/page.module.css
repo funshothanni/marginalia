@@ -359,6 +359,11 @@
     cursor: not-allowed;
 }
 
+/* Keep the live region mounted without leaving an extra gap before selection. */
+.uploadSection .pdfSelectionStatus:empty {
+    position: absolute;
+}
+
 .selectedPdf {
     display: grid;
     gap: 0.25rem;
