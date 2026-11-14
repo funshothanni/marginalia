@@ -207,7 +207,7 @@ export default function WorkspaceSidebar({
         )}
 
         <div className={styles.uploadSection}>
-            <p className={styles.label}><span className={styles.brandLabel}>upload study material</span></p>
+            <p className={styles.label}><span className={styles.brandLabel}>upload course material</span></p>
 
             <div className={styles.filePicker}>
                 <input

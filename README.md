@@ -8,7 +8,7 @@ marginalia is an AI-powered study assistant that answers questions using the cou
 2. Open the sidebar and select a subject, or use **Add Subject** to create one.
 3. Click **+** in the chat bar to upload a PDF to that subject. You can also upload from the sidebar.
 4. Ask a question about your materials, such as “What are the main ideas in these notes?”.
-5. Use **Chat History** to reopen a conversation or **New Chat** to start a fresh one.
+5. Search **Chat History** in the sidebar to reopen a conversation or the new chat icon to start a fresh one.
 
 ## Features
 
