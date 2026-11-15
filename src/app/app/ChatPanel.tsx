@@ -46,7 +46,7 @@ export default function ChatPanel({
             <div className={hasConversation ? styles.chat : styles.welcome}>
                 {!hasConversation && (
                     <h2 className={`${styles.welcomeTitle} ${styles.ragText}`}>
-                        {displayName ? `hello ${displayName}!` : "hello!"}
+                        {displayName ? `Hello ${displayName}!` : "Hello!"}
                     </h2>
                 )}
                 {hasConversation && (
@@ -140,9 +140,13 @@ export default function ChatPanel({
 
                     <button
                         className={styles.sendButton}
+                        /* Added this so the send option is unavailable if no question*/
+                        disabled={question.trim() === ''  || isUploading}
                         type="submit"
                     >
                         send
+
+
                     </button>
                 </form>
                 {!hasConversation && (

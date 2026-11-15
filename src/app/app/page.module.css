@@ -1,3 +1,6 @@
+@import url("https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap");
+
+
 .container {
     /* Keep the sidebar and the workspace offset in sync. */
     --sidebar-width: 320px;
@@ -454,6 +457,10 @@
     padding-block: 1rem;
 }
 
+.welcome h2{
+font-family: "MedievalSharp", serif;
+text-transform:none;
+}
 .welcomeTitle {
     margin: 0 0 clamp(1rem, 4vw, 2rem);
     font-size: clamp(2rem, 6vw, 3.75rem);
@@ -637,13 +644,14 @@
     cursor: pointer;
 }
 
-.attachButton:disabled {
+.attachButton:disabled, .sendButton:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
+
 .attachButton:hover:not(:disabled),
-.sendButton:hover {
+.sendButton:hover:not(:disabled) {
     background: var(--chat-action-hover-background);
 }
 
