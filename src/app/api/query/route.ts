@@ -1,3 +1,4 @@
+import { getConversationalReply } from "../../../lib/conversation";
 import { COURSE_SUBJECT_FORMAT_HINT, parseCourseSubject } from "../../../lib/courseSubject";
 import { NextResponse } from "next/server";
 import { askQuestion } from "../../../lib/rag";
@@ -61,15 +62,18 @@ export async function POST(request: Request) {
             );
         }
 
-        if (!(await hasStudyMaterial(user.id, chat.subject))) {
-            return NextResponse.json(
-                { error: "upload a PDF for this course before asking a question." },
-                { status: 422 }
-            );
-        }
+        let answer = await getConversationalReply(question.trim());
+        if (answer === null) {
+            if (!(await hasStudyMaterial(user.id, chat.subject))) {
+                return NextResponse.json(
+                    { error: "upload a PDF for this course before asking a question." },
+                    { status: 422 }
+                );
+            }
 
-        const conversationHistory = await getMessages(user.id, chatId);
-        const answer = await askQuestion(user.id, question.trim(), chat.subject, conversationHistory);
+            const conversationHistory = await getMessages(user.id, chatId);
+            answer = await askQuestion(user.id, question.trim(), chat.subject, conversationHistory);
+        }
 
         if (chat.title === "New Chat") {
             const title =
