@@ -65,7 +65,7 @@ export default function ChatPanel({
             <div className={hasConversation ? styles.chat : styles.welcome}>
                 {!hasConversation && (
                     <h2 className={`${styles.welcomeTitle} ${styles.ragText}`}>
-                        {displayName ? `Hello ${displayName}!` : "Hello!"}
+                        {displayName ? `hello ${displayName}!` : "hello!"}
                     </h2>
                 )}
                 {hasConversation && (
