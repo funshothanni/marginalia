@@ -44,6 +44,10 @@ export default function Workspace({ displayName }: { displayName: string }) {
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSelectingChat, setIsSelectingChat] = useState(false);
+    const [isDeletingChat, setIsDeletingChat] = useState(false);
+    // Serialize chat actions so a pending request cannot reopen or write to a deleted chat.
+    const chatActionsDisabled = isLoading || isSelectingChat || isDeletingChat || isDeletingSubject;
 
     useEffect(() => {
         // Start the timer when the success message replaces the upload progress.
@@ -153,7 +157,8 @@ export default function Workspace({ displayName }: { displayName: string }) {
     }
 
     async function handleSelectChat(chatId: number) {
-        if (isDeletingSubject) return;
+        if (chatActionsDisabled) return;
+        setIsSelectingChat(true);
 
         try {
             const response = await fetch(
@@ -194,6 +199,32 @@ export default function Workspace({ displayName }: { displayName: string }) {
                 "Failed to load messages:",
                 error
             );
+        } finally {
+            setIsSelectingChat(false);
+        }
+    }
+
+    async function handleDeleteChat(chat: Chat) {
+        if (chatActionsDisabled || !window.confirm(`Delete "${chat.title}" and all its messages?`)) {
+            return;
+        }
+
+        setIsDeletingChat(true);
+        try {
+            const response = await fetch(`/api/chats?id=${chat.id}`, { method: "DELETE" });
+            if (!response.ok) {
+                throw new Error("Chat deletion failed.");
+            }
+
+            setChats((previous) => previous.filter((entry) => entry.id !== chat.id));
+            if (selectedChatId === chat.id) {
+                handleNewChat();
+            }
+        } catch (error) {
+            console.error(error);
+            window.alert("Could not delete the chat. Please try again.");
+        } finally {
+            setIsDeletingChat(false);
         }
     }
 
@@ -201,7 +232,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
         event: React.FormEvent<HTMLFormElement>
     ) {
         event.preventDefault();
-        if (isDeletingSubject) return;
+        if (chatActionsDisabled) return;
 
         if (selectedSubject === "") {
             alert("please select a subject first.");
@@ -359,7 +390,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
     }
 
     async function handleDeleteSubject() {
-        if (!selectedSubject || isDeletingSubject || isLoading || isUploading) {
+        if (!selectedSubject || chatActionsDisabled || isUploading) {
             return;
         }
 
@@ -444,11 +475,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
         setQuestion("");
     }
     function changeSubject(subject: string) {
-        if (isDeletingSubject) return;
-
-        if (isLoading) {
-            return;
-        }
+        if (chatActionsDisabled) return;
 
         if (subject !== selectedSubject && selectedChatId !== null) {
             // Retrieval follows the chat's saved subject, so a different course needs a new chat.
@@ -564,7 +591,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
                         aria-label="new chat"
                         title="new chat"
                         onClick={handleNewChat}
-                        disabled={isLoading || isDeletingSubject}
+                        disabled={chatActionsDisabled}
                     >
                         <NewChatIcon />
                     </button>
@@ -598,7 +625,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
                 handleAddSubject={handleAddSubject}
                 handleDeleteSubject={handleDeleteSubject}
                 isDeletingSubject={isDeletingSubject}
-                canDeleteSubject={Boolean(selectedSubject) && !isLoading && !isUploading}
+                canDeleteSubject={Boolean(selectedSubject) && !chatActionsDisabled && !isUploading}
                 documents={documents}
                 handleDeleteDocument={handleDeleteDocument}
                 file={file}
@@ -609,6 +636,8 @@ export default function Workspace({ displayName }: { displayName: string }) {
                 chats={chats}
                 selectedChatId={selectedChatId}
                 handleSelectChat={handleSelectChat}
+                handleDeleteChat={handleDeleteChat}
+                chatActionsDisabled={chatActionsDisabled}
             />
 
             <ChatPanel

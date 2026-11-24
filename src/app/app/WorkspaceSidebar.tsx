@@ -2,6 +2,28 @@ import LogoutButton from "@/components/LogoutButton";
 import type { Chat, StudyDocument } from "./workspaceTypes";
 import styles from "./page.module.css";
 
+function TrashIcon() {
+    return (
+        <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M3 6h18"/>
+            <path d="M8 6V4h8v2"/>
+            <path d="M19 6l-1 14H6L5 6"/>
+            <path d="M10 11v5"/>
+            <path d="M14 11v5"/>
+        </svg>
+    );
+}
+
 type Props = {
     sidebarOpen: boolean;
     setSidebarOpen: (open: boolean) => void;
@@ -26,6 +48,8 @@ type Props = {
     chats: Chat[];
     selectedChatId: number | null;
     handleSelectChat: (id: number) => Promise<void>;
+    handleDeleteChat: (chat: Chat) => Promise<void>;
+    chatActionsDisabled: boolean;
 };
 
 export default function WorkspaceSidebar({
@@ -52,6 +76,8 @@ export default function WorkspaceSidebar({
     chats,
     selectedChatId,
     handleSelectChat,
+    handleDeleteChat,
+    chatActionsDisabled,
 }: Props) {
     return (
     <aside
@@ -181,23 +207,7 @@ export default function WorkspaceSidebar({
                                     aria-label={`delete ${document.file_name.toLowerCase()}`}
                                     title="delete document"
                                 >
-                                    <svg
-                                        width="18"
-                                        height="18"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        aria-hidden="true"
-                                    >
-                                        <path d="M3 6h18"/>
-                                        <path d="M8 6V4h8v2"/>
-                                        <path d="M19 6l-1 14H6L5 6"/>
-                                        <path d="M10 11v5"/>
-                                        <path d="M14 11v5"/>
-                                    </svg>
+                                    <TrashIcon />
                                 </button>
                             </li>
                         ))}
@@ -272,20 +282,26 @@ export default function WorkspaceSidebar({
             ) : (
                 <div className={styles.chatHistoryList}>
                     {chats.map((chat) => (
-                        <button
-                            key={chat.id}
-                            type="button"
-                            className={`${styles.chatHistoryItem} ${
-                                selectedChatId === chat.id
-                                    ? styles.activeChat
-                                    : ""
-                            }`}
-                            onClick={() => handleSelectChat(chat.id)}
-                        >
-                            <span className={styles.chatHistorySubject}>
-                                {chat.title}
-                            </span>
-                        </button>
+                        <div key={chat.id} className={styles.chatHistoryRow}>
+                            <button
+                                type="button"
+                                className={`${styles.chatHistoryItem} ${selectedChatId === chat.id ? styles.activeChat : ""}`}
+                                onClick={() => handleSelectChat(chat.id)}
+                                disabled={chatActionsDisabled}
+                            >
+                                <span className={styles.chatHistorySubject}>{chat.title}</span>
+                            </button>
+                            <button
+                                type="button"
+                                className={styles.deleteChatButton}
+                                onClick={() => handleDeleteChat(chat)}
+                                aria-label={`Delete chat: ${chat.title}`}
+                                title="Delete chat"
+                                disabled={chatActionsDisabled}
+                            >
+                                <TrashIcon />
+                            </button>
+                        </div>
                     ))}
                 </div>
             )}

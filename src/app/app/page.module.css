@@ -543,11 +543,17 @@ text-transform:none;
     gap: 14px;
 }
 
-.userMessage {
+.userMessageGroup {
     align-self: flex-end;
-
     max-width: 70%;
+}
 
+.assistantMessageGroup {
+    align-self: flex-start;
+    max-width: 75%;
+}
+
+.userMessage {
     padding: 12px 16px;
 
     border-radius: 14px 14px 4px 14px;
@@ -562,10 +568,6 @@ text-transform:none;
 }
 
 .assistantMessage {
-    align-self: flex-start;
-
-    max-width: 75%;
-
     padding: 12px 16px;
 
     border-radius: 14px 14px 14px 4px;
@@ -577,6 +579,37 @@ text-transform:none;
     line-height: 1.5;
 
     overflow-wrap: anywhere;
+}
+
+.messageActions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    color: var(--brand-start-color);
+}
+
+.copyMessageStatus {
+    font-size: 0.75rem;
+}
+
+.copyMessageButton {
+    display: grid;
+    place-items: center;
+    min-width: 28px;
+    min-height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.copyMessageButton:hover,
+.copyMessageButton:focus-visible {
+    outline: 1px solid currentColor;
+    outline-offset: -1px;
 }
 
 .chatUploadStatus:not(:empty) {
@@ -750,12 +783,24 @@ text-transform:none;
     background: transparent;
 
     cursor: pointer;
-
-    opacity: 0.6;
 }
 
-.deleteDocumentButton:hover {
-    opacity: 1;
+.deleteDocumentButton,
+.deleteChatButton {
+    color: var(--brand-start-color);
+}
+
+.deleteDocumentButton:hover svg,
+.deleteChatButton:hover:not(:disabled) svg {
+    /* Follow the icon's shape instead of highlighting the button box. */
+    filter: drop-shadow(0 0 3px currentColor);
+    stroke-width: 2.5;
+}
+
+.deleteDocumentButton:focus-visible,
+.deleteChatButton:focus-visible {
+    outline: 1px solid currentColor;
+    outline-offset: -1px;
 }
 
 .chatHistorySection {
@@ -769,8 +814,15 @@ text-transform:none;
     gap: 6px;
 }
 
+.chatHistoryRow {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 .chatHistoryItem {
-    width: 100%;
+    flex: 1;
+    min-width: 0;
 
     padding: 10px 12px;
 
@@ -789,6 +841,20 @@ text-transform:none;
 
 .chatHistoryItem:hover:not(.activeChat) {
     background: var(--panel-color);
+}
+
+.deleteChatButton {
+    flex-shrink: 0;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+}
+
+.deleteChatButton:disabled,
+.chatHistoryItem:disabled {
+    cursor: default;
 }
 
 .chatHistorySubject {
@@ -871,8 +937,8 @@ text-transform:none;
         padding: 16px;
     }
 
-    .userMessage,
-    .assistantMessage {
+    .userMessageGroup,
+    .assistantMessageGroup {
         max-width: 88%;
     }
 

@@ -1,4 +1,4 @@
-import { useRef, type FormEvent, type Ref } from "react";
+import { useEffect, useRef, useState, type FormEvent, type Ref } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -40,6 +40,25 @@ export default function ChatPanel({
     setQuestion,
 }: Props) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    // Track the message object so feedback cannot carry over to another chat's row.
+    const [copyFeedback, setCopyFeedback] = useState<{ message: Message; label: string } | null>(null);
+
+    useEffect(() => {
+        if (!copyFeedback) return;
+
+        const timeout = window.setTimeout(() => setCopyFeedback(null), 2000);
+        return () => window.clearTimeout(timeout);
+    }, [copyFeedback]);
+
+    async function copyMessage(message: Message) {
+        try {
+            // Copy the original text to preserve Markdown and LaTeX.
+            await navigator.clipboard.writeText(message.text);
+            setCopyFeedback({ message, label: "Copied" });
+        } catch {
+            setCopyFeedback({ message, label: "Couldn't copy" });
+        }
+    }
 
     return (
         <section className={styles.chatArea}>
@@ -62,20 +81,39 @@ export default function ChatPanel({
                                     key={index}
                                     className={
                                         message.role === "user"
-                                            ? styles.userMessage
-                                            : styles.assistantMessage
+                                            ? styles.userMessageGroup
+                                            : styles.assistantMessageGroup
                                     }
                                 >
-                                    {message.role === "assistant" ? (
-                                        <ReactMarkdown
-                                            remarkPlugins={[remarkMath]}
-                                            rehypePlugins={[rehypeKatex]}
+                                    <div className={message.role === "user" ? styles.userMessage : styles.assistantMessage}>
+                                        {message.role === "assistant" ? (
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkMath]}
+                                                rehypePlugins={[rehypeKatex]}
+                                            >
+                                                {message.text}
+                                            </ReactMarkdown>
+                                        ) : (
+                                            message.text
+                                        )}
+                                    </div>
+                                    <div className={styles.messageActions}>
+                                        <span className={styles.copyMessageStatus} role="status">
+                                            {copyFeedback?.message === message ? copyFeedback.label : ""}
+                                        </span>
+                                        <button
+                                            className={styles.copyMessageButton}
+                                            type="button"
+                                            aria-label="Copy message"
+                                            title="Copy message"
+                                            onClick={() => void copyMessage(message)}
                                         >
-                                            {message.text}
-                                        </ReactMarkdown>
-                                    ) : (
-                                        message.text
-                                    )}
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                                <rect x="8" y="8" width="12" height="12" rx="2" />
+                                                <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
 
