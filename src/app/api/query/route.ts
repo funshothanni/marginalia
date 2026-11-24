@@ -62,7 +62,8 @@ export async function POST(request: Request) {
             );
         }
 
-        let answer = await getConversationalReply(question.trim());
+        const conversationHistory = await getMessages(user.id, chatId);
+        let answer = await getConversationalReply(question.trim(), conversationHistory);
         if (answer === null) {
             if (!(await hasStudyMaterial(user.id, chat.subject))) {
                 return NextResponse.json(
@@ -71,7 +72,6 @@ export async function POST(request: Request) {
                 );
             }
 
-            const conversationHistory = await getMessages(user.id, chatId);
             answer = await askQuestion(user.id, question.trim(), chat.subject, conversationHistory);
         }
 

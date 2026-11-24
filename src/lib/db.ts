@@ -49,7 +49,48 @@ export async function hasStudyMaterial(userId: string, subject: string): Promise
     return data.length > 0;
 }
 
-export async function searchChunks(userId: string, queryEmbedding: number[], subject: string, matchCount: number = 5): Promise<SearchResult[]> {
+export async function getOverviewChunks(userId: string, subject: string, limit: number, documentId?: number): Promise<{ text: string; is_sampled: boolean }[]> {
+    const supabase = await createAuthenticatedClient();
+    const { data, error } = await supabase.rpc("sample_note_chunks", {
+        match_user_id: userId,
+        match_subject: subject,
+        sample_limit: limit,
+        match_document_id: documentId ?? null,
+    });
+
+    if (error) {
+        throw new Error(`Failed to retrieve overview chunks: ${error.message}`);
+    }
+
+    return data;
+}
+
+export async function findChunksByPhrase(userId: string, subject: string, phrase: string, limit: number, documentId?: number): Promise<{ text: string }[]> {
+    const supabase = await createAuthenticatedClient();
+    const query = supabase
+        .from("note_chunks")
+        .select("text, documents!inner(user_id, subject)")
+        .eq("documents.user_id", userId)
+        .eq("documents.subject", subject)
+        // Preserve word order and avoid stemming names or identifiers.
+        .textSearch("text", phrase, { type: "phrase", config: "simple" })
+        .order("id")
+        .limit(limit);
+
+    if (documentId !== undefined) {
+        query.eq("document_id", documentId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+        throw new Error(`Failed to retrieve phrase matches: ${error.message}`);
+    }
+
+    return data;
+}
+
+export async function searchChunks(userId: string, queryEmbedding: number[], subject: string, matchCount: number = 5, documentId?: number): Promise<SearchResult[]> {
     const supabase = await createAuthenticatedClient();
 
     const { data, error } = await supabase.rpc(
@@ -59,6 +100,8 @@ export async function searchChunks(userId: string, queryEmbedding: number[], sub
             match_subject: subject,
             match_user_id: userId,
             match_count: matchCount,
+            // Omit the document argument for callers using the existing course-wide RPC.
+            ...(documentId === undefined ? {} : { match_document_id: documentId }),
         }
     );
 

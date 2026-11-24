@@ -119,6 +119,88 @@ order by nc.embedding <=> query_embedding
 limit match_count;
 $$;
 
+-- Filter by the authorized document before ranking and limiting vector matches.
+create or replace function match_note_chunks(
+    query_embedding vector(1536),
+    match_subject text,
+    match_user_id uuid,
+    match_count int,
+    match_document_id int
+)
+returns table(
+    id int,
+    text text,
+    source_doc varchar(255),
+    metadata jsonb,
+    similarity float
+)
+language sql
+as $$
+select
+    nc.id,
+    nc.text,
+    nc.source_doc,
+    nc.metadata,
+    1 - (nc.embedding <=> query_embedding) as similarity
+from note_chunks nc
+         join documents d
+              on d.id = nc.document_id
+where d.user_id = match_user_id
+  and d.subject = match_subject
+  and d.id = match_document_id
+order by nc.embedding <=> query_embedding
+limit match_count;
+$$;
+
+-- Sample across document positions without sending the full course to the app.
+create or replace function sample_note_chunks(
+    match_user_id uuid,
+    match_subject text,
+    sample_limit int,
+    match_document_id int default null
+)
+returns table(text text, is_sampled boolean)
+language sql
+stable
+security invoker
+as $$
+with scoped as (
+    select nc.id, nc.text, nc.document_id,
+           row_number() over (partition by nc.document_id order by nc.chunk_index, nc.id) as position
+    from note_chunks nc
+    join documents d on d.id = nc.document_id
+    where d.user_id = match_user_id
+      and d.subject = match_subject
+      and (match_document_id is null or d.id = match_document_id)
+      and btrim(nc.text) <> ''
+), document_sizes as (
+    select document_id, count(*) as chunk_count
+    from scoped
+    group by document_id
+), slots as (
+    -- Allocate one slot per PDF first, favoring longer PDFs when a round cannot fit.
+    select d.document_id, d.chunk_count
+    from document_sizes d
+    cross join lateral generate_series(1, least(d.chunk_count, sample_limit)) as slot(number)
+    order by slot.number, d.chunk_count desc, d.document_id
+    limit sample_limit
+), allocation as (
+    select document_id, chunk_count, count(*) as slot_count
+    from slots
+    group by document_id, chunk_count
+)
+select s.text, (select sum(chunk_count) from document_sizes) > sample_limit
+from allocation a
+cross join lateral generate_series(1, a.slot_count) as slot(number)
+join scoped s on s.document_id = a.document_id
+    -- One slot takes the middle; multiple slots include both ends.
+    and s.position = case
+        when a.slot_count = 1 then (a.chunk_count + 1) / 2
+        else 1 + round((slot.number - 1) * (a.chunk_count - 1)::numeric / (a.slot_count - 1))
+    end
+order by s.document_id, s.position;
+$$;
+
 -- Store chat conversations
 create table if not exists chats (
     id serial primary key,

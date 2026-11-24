@@ -344,6 +344,7 @@ describe("POST /api/query", () => {
         const response = await POST(request);
         expect(response.status).toBe(200);
         expect(mockGetMessages).toHaveBeenCalledWith("test-user-id", 7);
+        expect(mockGetConversationalReply).toHaveBeenCalledWith("Can you give me an example of that?", previousMessages);
         expect(mockAskQuestion).toHaveBeenCalledWith("test-user-id", "Can you give me an example of that?", "PSYC 2000", previousMessages);
     });
 
