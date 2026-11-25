@@ -237,7 +237,7 @@ export default function WorkspaceSidebar({
                     }}
                 />
                 <label htmlFor="pdfFile" className={styles.chooseFileButton}>
-                    {file ? "change chosen PDF" : "choose PDF to upload"}
+                    {file ? "change chosen PDF" : "choose your " + selectedSubject + " document"}
                 </label>
             </div>
 

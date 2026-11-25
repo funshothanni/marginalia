@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
         if (file.type !== "application/pdf") {
             return NextResponse.json(
-                {error: "Only PDF files are supported."},
+                {error: "Only pdf files are supported."},
                 {status: 400}
             );
         }
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
         const chunkCount = await ingestPdf(user.id, buffer, file.name, metadata);
         return NextResponse.json(
             {
-                message: "PDF uploaded successfully.",
+                message: "pdf uploaded successfully.",
                 count: chunkCount
             },
 
