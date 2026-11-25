@@ -1,0 +1,180 @@
+.site {
+    --paper: #fcfaf3;
+    --ink: #242015;
+    --gold: #edd18b;
+    flex: 1;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-geist-sans), sans-serif;
+}
+
+.header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.125rem clamp(1.25rem, 5vw, 5rem);
+}
+
+.wordmark {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.05em;
+}
+
+.navigation {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(0.75rem, 3vw, 2.5rem);
+}
+
+.navigation a:hover,
+.navigation [aria-current] {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+}
+
+.signupLink,
+.primaryLink {
+    display: inline-block;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--ink);
+    border-radius: 0.5rem;
+    background: var(--gold);
+}
+
+.primaryLink {
+    margin-top: 1.75rem;
+    font-weight: 650;
+}
+
+.hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(1rem, 5vw, 5rem);
+    max-width: 100rem;
+    min-height: 75svh;
+    margin-inline: auto;
+    padding: clamp(3rem, 9vw, 8rem) clamp(1.25rem, 6vw, 6rem);
+}
+
+.headline {
+    font-size: clamp(3.25rem, 8vw, 8rem);
+    font-weight: 750;
+    line-height: 0.94;
+    letter-spacing: -0.075em;
+}
+
+.headline span {
+    display: block;
+}
+
+/* Treat the three overlapping folders as one responsive illustration. */
+.folderStack {
+    position: relative;
+    width: min(100%, 38rem);
+    aspect-ratio: 1.15;
+    justify-self: center;
+}
+
+.folder {
+    position: absolute;
+    width: 68%;
+    height: 68%;
+    padding: clamp(0.65rem, 3vw, 2rem);
+    border: 1px solid var(--ink);
+    border-radius: 0.85rem;
+    font-size: clamp(0.875rem, 2vw, 1.4rem);
+    font-weight: 600;
+    transform: rotate(14deg) skewX(-12deg);
+}
+
+.backFolder {
+    top: 9%;
+    left: 26%;
+    background: #c8bd9d;
+}
+
+.middleFolder {
+    top: 20%;
+    left: 16%;
+    background: #dec48b;
+}
+
+.frontFolder {
+    top: 31%;
+    left: 6%;
+    background: var(--gold);
+}
+
+.folderSymbols {
+    position: absolute;
+    inset: 30% 8% 10%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25em;
+    font-size: clamp(1.125rem, 4vw, 3.5rem);
+    line-height: 1;
+}
+
+.about {
+    max-width: 50rem;
+    margin-inline: auto;
+    padding: clamp(2rem, 7vw, 5rem) 1.25rem;
+}
+
+.about h1 {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 750;
+    letter-spacing: -0.06em;
+}
+
+.about section {
+    margin-top: 2.5rem;
+}
+
+.about h2 {
+    margin-bottom: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.about ol {
+    padding-inline-start: 1.5rem;
+    list-style: decimal;
+}
+
+.example {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 1px solid var(--ink);
+    border-radius: 0.75rem;
+}
+
+.example p {
+    width: fit-content;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    background: #eee7d8;
+}
+
+.example .prompt {
+    justify-self: end;
+    background: var(--gold);
+}
+
+@media (max-width: 44rem) {
+    .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+
+    .folderStack {
+        width: min(100%, 27rem);
+    }
+}
