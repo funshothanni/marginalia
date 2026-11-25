@@ -1,17 +1,17 @@
-"use client";
-
 import type { ReactNode } from "react";
-import WorkspaceThemeToggle from "@/components/WorkspaceThemeToggle";
-import { useWorkspaceTheme } from "@/components/useWorkspaceTheme";
+import PublicHeader from "@/app/PublicHeader";
+import PublicIntro from "@/app/PublicIntro";
+import publicStyles from "@/app/public.module.css";
 import styles from "./AuthAppearance.module.css";
 
 export default function AuthAppearance({ children }: { children: ReactNode }) {
-    const { theme, changeTheme } = useWorkspaceTheme();
-
     return (
-        <main className={styles.page} data-theme={theme}>
-            <WorkspaceThemeToggle theme={theme} onChange={changeTheme} />
-            {children}
-        </main>
+        <div className={`${publicStyles.site} ${styles.page}`}>
+            <PublicHeader />
+            <main className={`${publicStyles.hero} ${styles.layout}`}>
+                <PublicIntro isPageHeading={false} />
+                <div className={styles.formPanel}>{children}</div>
+            </main>
+        </div>
     );
 }
