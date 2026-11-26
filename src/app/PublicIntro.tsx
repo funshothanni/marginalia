@@ -15,9 +15,11 @@ export default function PublicIntro({ href = "/signup", isPageHeading = true }: 
                 <span>that talk</span>
                 <span>back…</span>
             </Headline>
-            <Link className={styles.primaryLink} href={href}>
-                start studying…
-            </Link>
+            {href === "/start-studying" ? (
+                <a className={styles.primaryLink} href={href}>start studying…</a>
+            ) : (
+                <Link className={styles.primaryLink} href={href}>start studying…</Link>
+            )}
         </div>
     );
 }
