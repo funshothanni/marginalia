@@ -15,6 +15,14 @@
     cursor: pointer;
 }
 
+.themeToggle.inlineToggle {
+    position: static;
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    font-size: 1rem;
+}
+
 .themeToggle:hover {
     background: var(--panel-color);
 }

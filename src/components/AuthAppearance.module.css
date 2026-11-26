@@ -1,14 +1,18 @@
 .page {
-    /* Reuse the public palette and keep native form controls light. */
-    --surface-color: var(--paper);
-    --text-color: var(--ink);
-    --strong-text: var(--ink);
+    /* Use the shared public theme for form surfaces and text. */
+    --strong-text: var(--text-color);
     --muted-text: #62594b;
-    --card-border: var(--ink);
+    --card-border: var(--control-border-color);
     --field-border: #847967;
     --error-color: #a32323;
     --success-color: #236039;
-    color-scheme: light;
+}
+
+.page[data-public-theme="dark"] {
+    --muted-text: #c4bbae;
+    --field-border: #8b7d69;
+    --error-color: #fca5a5;
+    --success-color: #86efac;
 }
 
 .formPanel {
@@ -42,7 +46,7 @@
 }
 
 .formPanel :is(input, button, a):focus-visible {
-    outline: 2px solid var(--ink);
+    outline: 2px solid var(--strong-text);
     outline-offset: 2px;
 }
 

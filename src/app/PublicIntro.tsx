@@ -16,7 +16,7 @@ export default function PublicIntro({ href = "/signup", isPageHeading = true }: 
                 <span>back…</span>
             </Headline>
             <Link className={styles.primaryLink} href={href}>
-                get studying…
+                start studying…
             </Link>
         </div>
     );
