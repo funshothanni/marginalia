@@ -2,12 +2,19 @@
 .palette {
     --ink: #242015;
     --gold: #edd18b;
+    /* Repeat a single gold rule over the current theme's background. */
+    --notebook-lines: repeating-linear-gradient(
+        to bottom,
+        transparent 0 calc(2.5rem - 1px),
+        color-mix(in srgb, var(--gold) var(--notebook-rule-strength, 38%), transparent) 0 2.5rem
+    );
 }
 
 .site {
     flex: 1;
     width: 100%;
-    background: var(--paper);
+    background-color: var(--paper);
+    background-image: var(--notebook-lines);
     color: var(--ink);
     font-family: var(--font-geist-sans), sans-serif;
 }
@@ -20,12 +27,13 @@
 }
 
 .site[data-public-theme="dark"] {
+    --notebook-rule-strength: 18%;
     --surface-color: var(--workspace-dark);
     /* Give the shared header and page content the same dark-mode text color. */
     --text-color: var(--gold);
     --panel-color: #29251e;
 
-    background: var(--surface-color);
+    background-color: var(--surface-color);
     color: var(--text-color);
 }
 
@@ -199,6 +207,12 @@
 }
 
 @media (max-width: 44rem) {
+    /* Center the navigation on its own row on mobile. */
+    .navigation {
+        flex-basis: 100%;
+        justify-content: center;
+    }
+
     .hero {
         grid-template-columns: 1fr;
         min-height: auto;

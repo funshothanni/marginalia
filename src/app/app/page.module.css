@@ -29,7 +29,8 @@
 
     box-sizing: border-box;
 
-    background: var(--surface-color);
+    background-color: var(--surface-color);
+    background-image: var(--notebook-lines);
     color: var(--text-color);
 
     display: flex;
@@ -49,6 +50,7 @@
 }
 
 .container[data-theme="dark"] {
+    --notebook-rule-strength: 18%;
     --muted-text-color: #c4bbae;
     --panel-color: #29251e;
     --border-color: #3d362b;
