@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import PublicHeader from "../PublicHeader";
+import PublicAppearance from "../PublicAppearance";
 import styles from "../public.module.css";
 
 export const metadata: Metadata = { title: "about marginalia" };
 
 export default function About() {
     return (
-        <div className={styles.site}>
-            <PublicHeader isAbout />
+        <PublicAppearance isAbout>
             <main className={styles.about}>
                 <h1>marginalia</h1>
                 <p>marginalia helps you study from the course pdfs you upload.</p>
@@ -29,9 +28,11 @@ export default function About() {
                         <p>it explains how a b-tree index keeps keys ordered and speeds up lookups.</p>
                         <p className={styles.prompt}>can you explain that more simply?</p>
                         <p>keeping the keys in order helps the database narrow down where to look.</p>
+                        <p className={styles.prompt}>what of supercalifragilisticexpialidocious?</p>
+                        <p>i couldn&#39;t find enough information in your uploaded materials to answer that.</p>
                     </div>
                 </section>
             </main>
-        </div>
+        </PublicAppearance>
     );
 }

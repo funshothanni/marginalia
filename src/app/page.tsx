@@ -1,6 +1,6 @@
 import { randomInt } from "node:crypto";
 import { getCurrentUser } from "@/lib/auth";
-import PublicHeader from "./PublicHeader";
+import PublicAppearance from "./PublicAppearance";
 import PublicIntro from "./PublicIntro";
 import styles from "./public.module.css";
 
@@ -21,8 +21,7 @@ export default async function Home() {
     const { front, middle, back, symbols } = courseStacks[randomInt(courseStacks.length)];
 
     return (
-        <div className={styles.site}>
-            <PublicHeader />
+        <PublicAppearance>
             <main className={styles.hero}>
                 <PublicIntro href={user ? "/app" : "/signup"} />
                 {/* The course labels are illustrative and never come from a student's account. */}
@@ -37,6 +36,6 @@ export default async function Home() {
                     </div>
                 </div>
             </main>
-        </div>
+        </PublicAppearance>
     );
 }

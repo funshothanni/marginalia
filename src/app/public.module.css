@@ -12,6 +12,23 @@
     font-family: var(--font-geist-sans), sans-serif;
 }
 
+.site[data-public-theme] {
+    --control-border-color: currentColor;
+    --surface-color: var(--paper);
+    --text-color: var(--ink);
+    --panel-color: #f5efe2;
+}
+
+.site[data-public-theme="dark"] {
+    --surface-color: var(--workspace-dark);
+    /* Give the shared header and page content the same dark-mode text color. */
+    --text-color: var(--gold);
+    --panel-color: #29251e;
+
+    background: var(--surface-color);
+    color: var(--text-color);
+}
+
 .header {
     display: flex;
     flex-wrap: wrap;
@@ -47,6 +64,7 @@
     border: 1px solid var(--ink);
     border-radius: 0.5rem;
     background: var(--gold);
+    color: var(--ink);
 }
 
 .primaryLink {
@@ -91,6 +109,8 @@
     padding: clamp(0.65rem, 3vw, 2rem);
     border: 1px solid var(--ink);
     border-radius: 0.85rem;
+    /* Folder fills stay light in either theme, so their labels stay ink-colored. */
+    color: var(--ink);
     font-size: clamp(0.875rem, 2vw, 1.4rem);
     font-weight: 600;
     transform: rotate(14deg) skewX(-12deg);
@@ -164,12 +184,18 @@
     width: fit-content;
     padding: 0.5rem 0.75rem;
     border-radius: 0.5rem;
-    background: #eee7d8;
+    background: var(--panel-color);
 }
 
 .example .prompt {
     justify-self: end;
     background: var(--gold);
+    color: var(--ink);
+}
+
+/* Give gold reply text a high-contrast surface in the dark sample chat. */
+.site[data-public-theme="dark"] .example p:not(.prompt) {
+    background: #000;
 }
 
 @media (max-width: 44rem) {

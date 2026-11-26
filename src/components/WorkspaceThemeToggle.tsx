@@ -4,8 +4,10 @@ import styles from "./WorkspaceThemeToggle.module.css";
 export default function WorkspaceThemeToggle({
     theme,
     onChange,
+    inline = false,
 }: {
     theme: WorkspaceTheme;
+    inline?: boolean;
     onChange: (theme: WorkspaceTheme) => void;
 }) {
     const nextTheme = theme === "dark" ? "light" : "dark";
@@ -14,7 +16,7 @@ export default function WorkspaceThemeToggle({
     return (
         <button
             type="button"
-            className={styles.themeToggle}
+            className={inline ? `${styles.themeToggle} ${styles.inlineToggle}` : styles.themeToggle}
             aria-label={label}
             title={label}
             onClick={() => onChange(nextTheme)}

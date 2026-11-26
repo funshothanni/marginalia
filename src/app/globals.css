@@ -16,8 +16,8 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* Match the document edges to the workspace's selected theme. */
-:root:has(main[data-theme="dark"]) {
+/* Match the document edges to the active public or workspace theme. */
+:root:has(main[data-theme="dark"], [data-public-theme="dark"]) {
   --background: var(--workspace-dark);
   --foreground: var(--paper);
   color-scheme: dark;
