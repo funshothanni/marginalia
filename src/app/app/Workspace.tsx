@@ -3,6 +3,7 @@
 import {Inter} from "next/font/google";
 import { useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
+import publicStyles from "../public.module.css";
 import { COURSE_SUBJECT_FORMAT_HINT, parseCourseSubject } from "@/lib/courseSubject";
 import NewChatIcon from "./NewChatIcon";
 import ChatPanel from "./ChatPanel";
@@ -570,7 +571,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
     return (
         <main
             data-theme={theme}
-            className={`${styles.container} ${inter.className} ${
+            className={`${styles.container} ${publicStyles.palette} ${inter.className} ${
                 sidebarOpen ? styles.sidebarActive : ""
             }`}
         >
