@@ -18,7 +18,13 @@ const courseStacks = [
 export default async function Home() {
     await connection();
     // Pick once on the server so the labels and symbols stay in sync for this page.
-    const { front, middle, back, symbols } = courseStacks[randomInt(courseStacks.length)];
+    const index = randomInt(courseStacks.length);
+
+    const front = courseStacks[index].front;
+    const symbols = courseStacks[index].symbols;
+
+    const middle = courseStacks[randomInt(courseStacks.length)].middle;
+    const back = courseStacks[randomInt(courseStacks.length)].back;
 
     return (
         <PublicAppearance>
