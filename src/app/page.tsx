@@ -1,5 +1,5 @@
 import { randomInt } from "node:crypto";
-import { getCurrentUser } from "@/lib/auth";
+import { connection } from "next/server";
 import PublicAppearance from "./PublicAppearance";
 import PublicIntro from "./PublicIntro";
 import styles from "./public.module.css";
@@ -16,14 +16,14 @@ const courseStacks = [
 ];
 
 export default async function Home() {
-    const user = await getCurrentUser();
+    await connection();
     // Pick once on the server so the labels and symbols stay in sync for this page.
     const { front, middle, back, symbols } = courseStacks[randomInt(courseStacks.length)];
 
     return (
         <PublicAppearance>
             <main className={styles.hero}>
-                <PublicIntro href={user ? "/app" : "/signup"} />
+                <PublicIntro href="/start-studying" />
                 {/* The course labels are illustrative and never come from a student's account. */}
                 <div className={styles.folderStack} role="img" aria-label={`three course folders: ${front}, ${middle}, and ${back}`}>
                     <div className={`${styles.folder} ${styles.backFolder}`}>{back}</div>
