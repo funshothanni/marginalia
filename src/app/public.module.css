@@ -1,12 +1,12 @@
 .site,
 .palette {
-    --paper: #fcfaf3;
     --ink: #242015;
     --gold: #edd18b;
 }
 
 .site {
     flex: 1;
+    width: 100%;
     background: var(--paper);
     color: var(--ink);
     font-family: var(--font-geist-sans), sans-serif;
