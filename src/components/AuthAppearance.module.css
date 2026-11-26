@@ -21,12 +21,13 @@
     min-width: 0;
 }
 
-/* Existing forms sit directly on the paper background in the right column. */
+/* Let the notebook lines continue behind the form. */
 .formPanel > div {
     max-width: 29rem;
     padding: 0;
     border: 0;
     border-radius: 0;
+    background: transparent;
     box-shadow: none;
 }
 

@@ -22,7 +22,7 @@ export default function About() {
 
                 {/* A static example shows a follow-up without implying a live demo. */}
                 <section aria-labelledby="example-chat">
-                    <h2 id="example-chat">example chat</h2>
+                    <h2 id="example-chat">sample chat</h2>
                     <div className={styles.example}>
                         <p className={styles.prompt}>what does lecture 25 talk about?</p>
                         <p>it explains how a b-tree index keeps keys ordered and speeds up lookups.</p>
