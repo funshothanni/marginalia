@@ -36,6 +36,22 @@
     overflow: hidden;
 }
 
+/* Use the landing palette in light mode without changing the workspace's dark theme. */
+.container:not([data-theme="dark"]) {
+    --accent-color: var(--gold);
+    --chat-action-background: var(--gold);
+    --chat-action-hover-background: #e5c47b;
+    --muted-text-color: #62594b;
+    --panel-color: #f5efe2;
+    --border-color: #e9e0ce;
+    --control-border-color: #847967;
+    --surface-color: var(--paper);
+    --text-color: var(--ink);
+    --gold-text-color: var(--ink);
+
+    font-family: var(--font-geist-sans), sans-serif;
+}
+
 .container[data-theme="dark"] {
     --muted-text-color: #b8b8b0;
     --panel-color: #272723;
