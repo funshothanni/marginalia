@@ -1,6 +1,5 @@
 "use client";
 
-import {Inter} from "next/font/google";
 import { useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
 import publicStyles from "../public.module.css";
@@ -14,10 +13,6 @@ import type { Chat, Message, StudyDocument } from "./workspaceTypes";
 
 const SELECTED_SUBJECT_STORAGE_KEY = "selectedSubject";
 const UPLOAD_CONFIRMATION_DURATION_MS = 5_000;
-
-const inter = Inter({
-    subsets: ["latin"]
-});
 
 export default function Workspace({ displayName }: { displayName: string }) {
     const { theme, changeTheme } = useWorkspaceTheme();
@@ -571,7 +566,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
     return (
         <main
             data-theme={theme}
-            className={`${styles.container} ${publicStyles.palette} ${inter.className} ${
+            className={`${styles.container} ${publicStyles.palette} ${
                 sidebarOpen ? styles.sidebarActive : ""
             }`}
         >
