@@ -65,29 +65,8 @@
 }
 
 .header {
-    width: 100%;
     flex-shrink: 0;
-
-    position: relative;
-
-    text-align: center;
-
-    padding: 24px 70px 18px;
-
-    box-sizing: border-box;
-}
-
-.title {
-    margin: 0;
-
-    font-size: 34px;
-    letter-spacing: -1px;
-}
-
-.subtitle {
-    margin: 8px 0 0;
-    color: var(--muted-text-color);
-    font-size: 0.875rem;
+    width: 100%;
 }
 
 .ragText {
@@ -110,13 +89,9 @@
 }
 
 .headerActions {
-    position: fixed;
-
-    top: 24px;
-    left: 24px;
     display: flex;
     gap: 4px;
-    z-index: 1100;
+    padding-inline: clamp(0.75rem, 2vw, 2rem);
 }
 
 .menuButton {
@@ -900,15 +875,30 @@ text-transform:none;
     margin: 0;
 }
 
-/* Account / Logout section */
-
-.accountSection :global(.logoutButton) {
-    border-color: var(--brand-start-color);
+.profileLink {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     color: var(--brand-start-color);
 }
 
-.accountSection :global(.logoutButton):hover {
+.profileAvatar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+}
+
+.profileLink:hover .profileAvatar {
     background: var(--panel-color);
+}
+
+.profileName {
+    overflow-wrap: anywhere;
+    text-transform: none;
 }
 
 .accountSection {
@@ -927,18 +917,6 @@ text-transform:none;
 }
 
 @media (max-width: 700px) {
-    .header {
-        padding: 24px 55px 16px 104px;
-    }
-
-    .headerActions {
-        left: 8px;
-    }
-
-    .title {
-        font-size: 27px;
-    }
-
     .chatArea {
         padding: 0 12px 12px;
     }

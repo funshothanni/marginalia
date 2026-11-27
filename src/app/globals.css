@@ -46,19 +46,18 @@ textarea::placeholder {
 }
 
 .logoutButton {
-  width: 100%;
   padding: 10px 12px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid #b4232c;
   border-radius: 8px;
-  background: transparent;
+  background: #b4232c;
+  color: #fff;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  text-align: left;
 }
 
-.logoutButton:hover {
-  background: #f3f3f3;
+.logoutButton:hover:not(:disabled) {
+  background: #951b24;
 }
 
 .logoutButton:disabled {
