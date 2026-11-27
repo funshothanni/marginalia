@@ -30,7 +30,7 @@ function formatMembership(createdAt: string) {
         years > 0 ? `${years} ${years === 1 ? "year" : "years"}` : "",
         remainingMonths > 0 ? `${remainingMonths} ${remainingMonths === 1 ? "month" : "months"}` : "",
     ].filter(Boolean).join(", ");
-    return `member since ${joinedLabel} · ${duration}`;
+    return `marginalian since ${joinedLabel} · ${duration}`;
 }
 
 export default async function ProfilePage() {
