@@ -1,4 +1,4 @@
-import LogoutButton from "@/components/LogoutButton";
+import Link from "next/link";
 import type { Chat, StudyDocument } from "./workspaceTypes";
 import styles from "./page.module.css";
 
@@ -25,6 +25,7 @@ function TrashIcon() {
 }
 
 type Props = {
+    displayName: string;
     sidebarOpen: boolean;
     setSidebarOpen: (open: boolean) => void;
     subjects: string[];
@@ -53,6 +54,7 @@ type Props = {
 };
 
 export default function WorkspaceSidebar({
+    displayName,
     sidebarOpen,
     setSidebarOpen,
     subjects,
@@ -307,7 +309,21 @@ export default function WorkspaceSidebar({
             )}
         </div>
         <div className={styles.accountSection}>
-            <LogoutButton />
+            <Link
+                className={styles.profileLink}
+                href="/app/profile"
+                title="open profile"
+                onClick={() => setSidebarOpen(false)}
+            >
+                <span className={styles.profileAvatar} aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="1.5">
+                        <circle cx="12" cy="8" r="3" />
+                        <path d="M5 20v-1a7 7 0 0 1 14 0v1" />
+                    </svg>
+                </span>
+                <span className={styles.profileName}>{displayName || "profile"}</span>
+            </Link>
         </div>
     </aside>
     );

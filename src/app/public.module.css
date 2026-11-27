@@ -43,7 +43,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    padding: 1.125rem clamp(1.25rem, 5vw, 5rem);
+    padding: 1.125rem clamp(0.75rem, 2vw, 2rem);
 }
 
 .wordmark {

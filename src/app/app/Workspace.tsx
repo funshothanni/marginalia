@@ -6,7 +6,7 @@ import publicStyles from "../public.module.css";
 import { COURSE_SUBJECT_FORMAT_HINT, parseCourseSubject } from "@/lib/courseSubject";
 import NewChatIcon from "./NewChatIcon";
 import ChatPanel from "./ChatPanel";
-import WorkspaceThemeToggle from "@/components/WorkspaceThemeToggle";
+import SignedInHeader from "./SignedInHeader";
 import { useWorkspaceTheme } from "@/components/useWorkspaceTheme";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 import type { Chat, Message, StudyDocument } from "./workspaceTypes";
@@ -570,7 +570,8 @@ export default function Workspace({ displayName }: { displayName: string }) {
                 sidebarOpen ? styles.sidebarActive : ""
             }`}
         >
-            <header className={styles.header}>
+            <div className={styles.header}>
+                <SignedInHeader active="workspace" theme={theme} onThemeChange={changeTheme} />
                 <div className={styles.headerActions}>
                     <button
                         className={styles.menuButton}
@@ -593,22 +594,11 @@ export default function Workspace({ displayName }: { displayName: string }) {
                     </button>
                 </div>
 
-                <h1 className={styles.title}>
-                    <span className={styles.ragText}>
-                        marginalia
-                    </span>
-
-                    <span>
-                        {" "}
-                    </span>
-                </h1>
-                <p className={styles.subtitle}>notes that talk back...</p>
-
-                <WorkspaceThemeToggle theme={theme} onChange={changeTheme} />
-            </header>
+            </div>
 
 
             <WorkspaceSidebar
+                displayName={displayName}
                 sidebarOpen={sidebarOpen}
                 setSidebarOpen={setSidebarOpen}
                 subjects={subjects}
