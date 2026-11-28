@@ -3,8 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getSubjects } from "@/lib/db";
 import { normalizeDisplayName } from "@/lib/displayName";
-import { AVATAR_BUCKET, avatarPath } from "@/lib/profileAvatar";
-import { createClient } from "@/lib/supabase/server";
+import { getProfileAvatarUrl } from "@/lib/profileAvatar.server";
 import ProfileAccount from "./ProfileAccount";
 import ProfileIdentity from "./ProfileIdentity";
 import SubjectFolders from "./SubjectFolders";
@@ -37,10 +36,9 @@ export default async function ProfilePage() {
     const user = await getCurrentUser();
     if (!user) redirect("/login");
 
-    const supabase = await createClient();
-    const [subjects, avatar] = await Promise.all([
+    const [subjects, avatarUrl] = await Promise.all([
         getSubjects(user.id),
-        supabase.storage.from(AVATAR_BUCKET).createSignedUrl(avatarPath(user.id), 3600),
+        getProfileAvatarUrl(user.id),
     ]);
     subjects.sort((left, right) => left.localeCompare(right));
 
@@ -50,7 +48,7 @@ export default async function ProfilePage() {
             <ProfileIdentity
                 userId={user.id}
                 displayName={normalizeDisplayName(user.user_metadata.full_name)}
-                avatarUrl={avatar.data?.signedUrl ?? null}
+                avatarUrl={avatarUrl}
                 membership={formatMembership(user.created_at)}
             />
             <div className={styles.sections}>
