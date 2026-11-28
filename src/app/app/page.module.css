@@ -779,6 +779,15 @@ text-transform:none;
     color: var(--brand-start-color);
 }
 
+@media (hover: hover) and (pointer: fine) {
+    /* Reserve space for the buttons and reveal them on hover or keyboard focus. */
+    .documentItem:not(:hover):not(:focus-within) .deleteDocumentButton,
+    .chatHistoryRow:not(:hover):not(:focus-within) .deleteChatButton {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
 .deleteDocumentButton:hover svg,
 .deleteChatButton:hover:not(:disabled) svg {
     /* Follow the icon's shape instead of highlighting the button box. */
