@@ -14,7 +14,10 @@ import type { Chat, Message, StudyDocument } from "./workspaceTypes";
 const SELECTED_SUBJECT_STORAGE_KEY = "selectedSubject";
 const UPLOAD_CONFIRMATION_DURATION_MS = 5_000;
 
-export default function Workspace({ displayName }: { displayName: string }) {
+export default function Workspace({ displayName, avatarUrl }: {
+    displayName: string;
+    avatarUrl: string | null;
+}) {
     const { theme, changeTheme } = useWorkspaceTheme();
 
     const [question, setQuestion] = useState("");
@@ -599,6 +602,7 @@ export default function Workspace({ displayName }: { displayName: string }) {
 
             <WorkspaceSidebar
                 displayName={displayName}
+                avatarUrl={avatarUrl}
                 sidebarOpen={sidebarOpen}
                 setSidebarOpen={setSidebarOpen}
                 subjects={subjects}
